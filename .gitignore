@@ -1,0 +1,17 @@
+.venv
+.venv-*
+venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+.idea/
+.vscode/
+uploads/
+frontend/uploads/
+dermavision.db
+*.sqlite3
+.DS_Store
+*.log

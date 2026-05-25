@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initialize Protocol - DermaVisionAI</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-neon: #00f2ff;
+            --primary-soft: #3a7bd5;
+            --bg-dark: #0a0e14;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #e0e6ed;
+            --text-dim: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 242, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(58, 123, 213, 0.05) 0%, transparent 20%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .auth-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            max-width: 1000px;
+            width: 95%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.5);
+        }
+
+        /* Left Side - Information */
+        .clinical-sidebar {
+            background: linear-gradient(135deg, rgba(26, 34, 48, 0.8), rgba(10, 14, 20, 0.9));
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .brand-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid var(--primary-neon);
+            color: var(--primary-neon);
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .display-text {
+            font-size: 2.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #fff, var(--text-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .benefit-list {
+            list-style: none;
+        }
+
+        .benefit-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+
+        .benefit-list i {
+            color: var(--primary-neon);
+            margin-right: 15px;
+            font-size: 1.1rem;
+        }
+
+        /* Right Side - Form */
+        .auth-content {
+            padding: 3.5rem;
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .auth-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: var(--primary-neon);
+        }
+
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-container i {
+            position: absolute;
+            left: 15px;
+            color: var(--text-dim);
+            transition: 0.3s;
+        }
+
+        .input-container input {
+            width: 100%;
+            padding: 14px 14px 14px 45px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        .input-container input:focus {
+            outline: none;
+            border-color: var(--primary-neon);
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+        }
+
+        .input-container input:focus + i {
+            color: var(--primary-neon);
+        }
+
+        .btn-initialize {
+            width: 100%;
+            padding: 16px;
+            margin-top: 1rem;
+            background: linear-gradient(45deg, var(--primary-soft), var(--primary-neon));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: 0.4s;
+        }
+
+        .btn-initialize:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 242, 255, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .auth-footer a {
+            color: var(--primary-neon);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .auth-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .clinical-sidebar {
+                display: none; /* Hide sidebar on mobile for simplicity */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-wrapper">
+    <!-- Left Section -->
+    <div class="clinical-sidebar">
+        <div class="brand-badge">Protocol Nerva v3.0</div>
+        <h2 class="display-text">Advanced Dermal Intelligence.</h2>
+        <ul class="benefit-list">
+            <li><i class="fa-solid fa-microscope"></i> Pathophysiology analysis</li>
+            <li><i class="fa-solid fa-dna"></i> Genomic-based protocols</li>
+            <li><i class="fa-solid fa-shield-halved"></i> 256-bit Health Encryption</li>
+        </ul>
+    </div>
+
+    <!-- Right Section -->
+    <div class="auth-content">
+        <div class="auth-header">
+            <h1>Create Profile</h1>
+            <p>Initialize your clinical telemetry account.</p>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" style="
+                        padding: 14px 16px; 
+                        margin-bottom: 1.5rem; 
+                        border-radius: 12px; 
+                        font-size: 0.9rem;
+                        font-weight: 500;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        {% if category == 'error' %}
+                        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.1));
+                        border: 1.5px solid rgba(239, 68, 68, 0.6);
+                        color: #ff8a80;
+                        {% else %}
+                        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.1));
+                        border: 1.5px solid rgba(34, 197, 94, 0.6);
+                        color: #69f0ae;
+                        {% endif %}
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    ">
+                        <i class="fa-solid fa-{% if category == 'error' %}circle-exclamation{% else %}circle-check{% endif %}" style="font-size: 1.1rem;"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" action="/register" id="registerForm">
+            <div class="form-group">
+                <label for="username">Patient Identifier</label>
+                <div class="input-container">
+                    <i class="fa-solid fa-user-tag"></i>
+                    <input type="text" id="username" name="username" placeholder="Unique username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Access Email</label>
+                <div class="input-container">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="name@domain.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Security Key</label>
+                <div class="input-container">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Min. 8 characters" minlength="8" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-initialize" id="submitBtn">
+                Initialize Protocol <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </form>
+
+        <p class="auth-footer">
+            Existing profile? <a href="/login">Authenticate here</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const passwordField = document.getElementById('password');
+        
+        // Clear password field on page load if error exists (for security)
+        const hasError = document.querySelector('.alert-error');
+        if (hasError && passwordField) {
+            passwordField.value = '';
+        }
+        
+        // Add input validation feedback
+        document.getElementById('username').addEventListener('input', function() {
+            this.style.borderColor = this.value.length > 2 ? 'var(--primary-neon)' : 'var(--glass-border)';
+        });
+        
+        document.getElementById('email').addEventListener('input', function() {
+            const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value);
+            this.style.borderColor = isValid ? 'var(--primary-neon)' : 'var(--glass-border)';
+        });
+        
+        document.getElementById('password').addEventListener('input', function() {
+            this.style.borderColor = this.value.length >= 8 ? 'var(--primary-neon)' : 'var(--glass-border)';
+        });
+        
+        form.addEventListener('submit', (e) => {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Validate inputs
+            if (username.length < 3) {
+                e.preventDefault();
+                alert('Username must be at least 3 characters long.');
+                return;
+            }
+            
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address.');
+                return;
+            }
+            
+            if (password.length < 8) {
+                e.preventDefault();
+                alert('Security Key must be at least 8 characters long.');
+                return;
+            }
+            
+            // Disable button during submission
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.6';
+            submitBtn.style.cursor = 'not-allowed';
+        });
+    });
+</script>
+
+</body>
+</html>

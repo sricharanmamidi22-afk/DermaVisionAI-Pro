@@ -1,0 +1,865 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="report-container">
+    <!-- Top Navigation / Actions -->
+    <header class="report-header">
+        <div class="header-left">
+            <span class="back-link" onclick="window.location.href='/scanner'">← RETURN TO SCANNER</span>
+            <h1>DERMAVISION DIAGNOSTIC REPORT <small>#{{ scan_id }}</small></h1>
+            <p class="report-subtitle">Data-driven skin analysis, daily routine guidance, and clinically-informed care tips.</p>
+        </div>
+        <div class="header-right">
+            <button class="action-btn secondary" onclick="window.print()">GENERATE_PDF</button>
+            <button class="action-btn primary">EXPORT_TO_HEALTH_CLOUD</button>
+        </div>
+    </header>
+
+    <div class="report-grid">
+        <!-- Sidebar: Subject Metadata -->
+        <aside class="report-sidebar">
+            <div class="card subject-card">
+                <div class="scan-thumb">
+                    <img src="{{ image_url }}" alt="Scan Substrate" id="source-image">
+                    <div class="scan-overlay"></div>
+                </div>
+                <div class="meta-list">
+                    <div class="meta-item">
+                        <label>TIMESTAMP</label>
+                        <span>2026-05-09 08:56:55</span>
+                    </div>
+                    <div class="meta-item">
+                        <label>HARDWARE</label>
+                        <span>LOGITECH_C920_PRO</span>
+                    </div>
+                    <div class="meta-item">
+                        <label>LATENCY</label>
+                        <span>142ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card status-card">
+                <h3>AI_CONFIDENCE</h3>
+                <div class="confidence-circle">
+                    <svg viewBox="0 0 36 36" class="circular-chart orange">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" stroke-dasharray="94, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <text x="18" y="20.35" class="percentage">94%</text>
+                    </svg>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content: Analysis Data -->
+        <main class="report-main">
+            <!-- Row 1: Metrics -->
+            <div class="metric-row">
+                <div class="card metric-card">
+                    <label>HYDRATION_INDEX</label>
+                    <div class="metric-value">72%</div>
+                    <div class="trend positive">↑ 4.2% IMPROVEMENT</div>
+                </div>
+                <div class="card metric-card">
+                    <label>MELANIN_DENSITY</label>
+                    <div class="metric-value">12.8</div>
+                    <div class="trend neutral">STABLE</div>
+                </div>
+                <div class="card metric-card">
+                    <label>PORE_CONGESTION</label>
+                    <div class="metric-value">LOW</div>
+                    <div class="trend positive">↓ 12% REDUCTION</div>
+                </div>
+            </div>
+
+            <!-- Row 2: Summary + Routine -->
+            <div class="summary-row">
+                <div class="card score-card" id="score-card">
+                    <h4>SKIN HEALTH SCORE</h4>
+                    <div class="score-value">--</div>
+                    <p id="score-summary" class="score-summary">Loading personalized skin metrics and care plan...</p>
+                </div>
+                <div class="card routine-card" id="routine-card">
+                    <h4>DAILY SKINCARE ROUTINE</h4>
+                    <div id="routine-content">Loading recommended routine...</div>
+                </div>
+                <div class="card tips-card" id="tips-card">
+                    <h4>CARE TIPS</h4>
+                    <div id="tips-content">Loading AI skin care tips...</div>
+                </div>
+            </div>
+
+            <!-- Row 3: Charts -->
+            <div class="chart-row">
+                <div class="card chart-card">
+                    <h3>NEURAL_MAPPING_VISUALIZATION</h3>
+                    <canvas id="skinChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Row 3: AI IMPROVEMENT SUGGESTIONS (10/10 TARGET) -->
+            <div class="card improvements-card">
+                <div class="improvements-header">
+                    <h3>🎯 ADVANCED RECOVERY FRAMEWORK</h3>
+                    <span class="subtitle">AI-powered recovery and evidence-based prevention strategies.</span>
+                </div>
+                <div id="improvements-loading" class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Generating personalized improvement suggestions...</p>
+                </div>
+                <div id="improvements-content" style="display: none;">
+                    <!-- Content will be dynamically loaded -->
+                </div>
+                <div id="improvements-error" style="display: none;" class="error-state">
+                    <p>Unable to load improvement suggestions. Please refresh.</p>
+                </div>
+            </div>
+
+            <!-- Row 3b: RECOVERY PROTOCOLS -->
+            <div class="card protocols-card">
+                <h3>⚙️ PERSONALIZED_RECOVERY_PROTOCOLS</h3>
+                <div class="protocol-tabs">
+                    <button class="protocol-tab active" data-protocol="general">General Protocol</button>
+                    <button class="protocol-tab" data-protocol="hydration">Hydration</button>
+                    <button class="protocol-tab" data-protocol="elasticity">Elasticity</button>
+                    <button class="protocol-tab" data-protocol="pore">Pore Clarity</button>
+                    <button class="protocol-tab" data-protocol="medications">Medications</button>
+                    <button class="protocol-tab" data-protocol="supplements">Supplements</button>
+                    <button class="protocol-tab" data-protocol="professional">Professional Care</button>
+                </div>
+                <div id="protocol-content" class="protocol-content">
+                    <!-- Dynamic content loaded by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Row 3c: AI Insights -->
+            <div class="card insights-card">
+                <h3>AI_GENERATED_INSIGHTS</h3>
+                <ul class="insight-list">
+                    <li>
+                        <span class="tag warning">NOTICE</span>
+                        Localised dehydration detected in the periorbital region. Increase daily H2O intake.
+                    </li>
+                    <li>
+                        <span class="tag success">OPTIMAL</span>
+                        Collagen elasticity is within high-percentile for age group PX_774.
+                    </li>
+                    <li>
+                        <span class="tag info">ADVICE</span>
+                        UV damage indicators are low; maintain current SPF 50 protocol.
+                    </li>
+                </ul>
+            </div>
+        </main>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&family=JetBrains+Mono&display=swap');
+
+    :root {
+        --orange: #E25822;
+        --bg: #0b0c10;
+        --card-bg: #161b22;
+        --border: rgba(255, 255, 255, 0.1);
+        --text-dim: #8b949e;
+    }
+
+    body {
+        background-color: var(--bg);
+        color: #c9d1d9;
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .report-container { max-width: 1400px; margin: 0 auto; }
+
+    /* HEADER */
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 30px;
+    }
+    .back-link { font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--orange); cursor: pointer; }
+    h1 { font-family: 'Orbitron'; font-size: 1.5rem; margin: 5px 0 0; }
+    h1 small { color: var(--text-dim); font-size: 0.9rem; }
+    .report-subtitle { color: var(--text-dim); margin: 8px 0 0; font-size: 0.95rem; max-width: 540px; }
+
+    /* LAYOUT GRID */
+    .report-grid {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+    }
+
+    .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    /* SIDEBAR */
+    .scan-thumb {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        aspect-ratio: 1;
+    }
+    .scan-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .scan-overlay {
+        position: absolute; inset: 0;
+        background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(226, 88, 34, 0.1) 1px, rgba(226, 88, 34, 0.1) 2px);
+    }
+    .meta-list { display: flex; flex-direction: column; gap: 12px; }
+    .meta-item label { display: block; font-size: 0.65rem; color: var(--text-dim); font-family: 'JetBrains Mono'; }
+    .meta-item span { font-weight: 600; font-size: 0.9rem; }
+
+    /* MAIN CONTENT */
+    .metric-row, .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .summary-row { margin-bottom: 20px; }
+    .score-card, .routine-card, .tips-card { min-height: 220px; }
+    .score-card h4, .routine-card h4, .tips-card h4 { font-family: 'Orbitron'; color: var(--orange); margin-bottom: 15px; }
+    .score-value { font-size: 3rem; font-weight: 800; margin-bottom: 10px; }
+    .score-summary { color: var(--text-dim); line-height: 1.6; }
+    .routine-card ul, .tips-card ul { margin: 0; padding-left: 20px; line-height: 1.6; }
+    .routine-card li, .tips-card li { margin-bottom: 8px; }
+    .routine-pill { display: inline-block; background: rgba(255,255,255,0.08); padding: 5px 10px; border-radius: 999px; margin: 3px 3px 0 0; font-size: 0.8rem; }
+
+    .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .metric-card label { font-family: 'Orbitron'; font-size: 0.7rem; color: var(--orange); }
+    .metric-value { font-size: 2rem; font-weight: 700; margin: 10px 0; }
+    .trend { font-size: 0.75rem; font-weight: 600; }
+    .positive { color: #3fb950; }
+    .neutral { color: var(--text-dim); }
+
+    /* INSIGHTS */
+    .insight-list { list-style: none; padding: 0; }
+    .insight-list li {
+        padding: 15px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.95rem;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    .tag {
+        font-family: 'JetBrains Mono';
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+    .warning { background: rgba(210, 153, 34, 0.1); color: #d29922; border: 1px solid #d29922; }
+    .success { background: rgba(63, 185, 80, 0.1); color: #3fb950; border: 1px solid #3fb950; }
+    .info { background: rgba(56, 139, 253, 0.1); color: #388bfd; border: 1px solid #388bfd; }
+
+    /* IMPROVEMENTS CARD */
+    .improvements-card, .protocols-card {
+        margin-top: 20px;
+    }
+    .improvements-header {
+        margin-bottom: 20px;
+    }
+    .improvements-header h3 {
+        font-family: 'Orbitron';
+        color: var(--orange);
+        margin-bottom: 5px;
+    }
+    .subtitle {
+        font-size: 0.75rem;
+        color: var(--text-dim);
+        font-style: italic;
+    }
+
+    /* IMPROVEMENT SUGGESTIONS GRID */
+    .improvement-suggestion {
+        background: rgba(226, 88, 34, 0.05);
+        border-left: 3px solid var(--orange);
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 6px;
+    }
+    .improvement-suggestion .category {
+        font-family: 'JetBrains Mono';
+        font-size: 0.7rem;
+        color: var(--orange);
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+    .improvement-suggestion .status {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
+        color: #c9d1d9;
+    }
+    .improvement-suggestion .protocols {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 12px;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+    .improvement-suggestion .protocols h5 {
+        margin: 0 0 8px 0;
+        color: var(--orange);
+        font-size: 0.8rem;
+    }
+    .improvement-suggestion .protocols ul {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 0.85rem;
+        line-height: 1.6;
+    }
+    .improvement-suggestion .timeline {
+        color: #3fb950;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+
+    /* PROTOCOL TABS */
+    .protocol-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+    .protocol-tab {
+        padding: 8px 15px;
+        background: rgba(226, 88, 34, 0.1);
+        border: 1px solid var(--orange);
+        color: var(--orange);
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: 'JetBrains Mono';
+        font-size: 0.75rem;
+        transition: 0.2s;
+    }
+    .protocol-tab.active {
+        background: var(--orange);
+        color: white;
+    }
+    .protocol-tab:hover {
+        background: var(--orange);
+        color: white;
+    }
+
+    /* PROTOCOL CONTENT */
+    .protocol-content {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 6px;
+    }
+    .protocol-content h4 {
+        color: var(--orange);
+        margin-top: 0;
+        font-size: 0.9rem;
+    }
+    .protocol-content ul {
+        margin: 0;
+        padding-left: 20px;
+        line-height: 1.8;
+    }
+    .protocol-content li {
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    /* LOADING STATE */
+    .loading-state, .error-state {
+        text-align: center;
+        padding: 30px;
+    }
+    .spinner {
+        border: 3px solid var(--border);
+        border-top: 3px solid var(--orange);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .error-state {
+        color: #d1184c;
+        background: rgba(209, 24, 76, 0.1);
+        border: 1px solid #d1184c;
+        border-radius: 6px;
+    }
+
+    /* BUTTONS */
+    .action-btn {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-family: 'Orbitron';
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .primary { background: var(--orange); color: white; border: none; }
+    .secondary { background: transparent; color: white; border: 1px solid var(--border); }
+    .action-btn:hover { opacity: 0.8; transform: translateY(-2px); }
+
+    /* CIRCULAR CHART */
+    .circular-chart { display: block; margin: 10px auto; max-width: 80%; max-height: 250px; }
+    .circle-bg { fill: none; stroke: #222; stroke-width: 3.8; }
+    .circle { fill: none; stroke-width: 2.8; stroke-linecap: round; stroke: var(--orange); }
+    .percentage { fill: #fff; font-family: 'Orbitron'; font-size: 0.5rem; text-anchor: middle; }
+
+    @media print {
+        .report-header, .back-link { display: none; }
+        body { background: white; color: black; }
+        .card { border: 1px solid #ddd; }
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Get scan ID from URL or mock data
+    const scanId = window.location.pathname.split('/').pop();
+    
+    // Initialize Radar Chart for Skin Metrics
+    const ctx = document.getElementById('skinChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Elasticity', 'Hydration', 'Melanin', 'Texture', 'UV Resistance', 'Pore Clarity'],
+            datasets: [{
+                label: 'Current Status',
+                data: [85, 72, 45, 90, 65, 80],
+                fill: true,
+                backgroundColor: 'rgba(226, 88, 34, 0.2)',
+                borderColor: '#E25822',
+                pointBackgroundColor: '#E25822',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#E25822'
+            }]
+        },
+        options: {
+            elements: { line: { borderWidth: 3 } },
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    pointLabels: { color: '#8b949e', font: { size: 12 } },
+                    ticks: { display: false }
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // ====== LOAD AI IMPROVEMENT SUGGESTIONS ======
+    async function loadImprovementSuggestions() {
+        try {
+            const response = await fetch(`/api/improvement-suggestions/${scanId}`);
+            const data = await response.json();
+            
+            if (data.status === 'SUCCESS') {
+                displayImprovementSuggestions(data.suggestions);
+            } else {
+                showImprovementError();
+            }
+        } catch (error) {
+            console.error('Error loading suggestions:', error);
+            showImprovementError();
+        }
+    }
+
+    function displayImprovementSuggestions(suggestions) {
+        const container = document.getElementById('improvements-content');
+        const loading = document.getElementById('improvements-loading');
+        const error = document.getElementById('improvements-error');
+        
+        loading.style.display = 'none';
+        error.style.display = 'none';
+        
+        let html = `
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(63, 185, 80, 0.1); border: 1px solid #3fb950; border-radius: 6px;">
+                <h4 style="margin-top: 0; color: #3fb950;">SKIN_HEALTH_SCORE: ${suggestions.current_score}/100</h4>
+                <p style="margin: 5px 0; font-size: 0.9rem;">
+                    <strong>Target Score:</strong> ${suggestions.target_score}/100 | 
+                    <strong>Improvement Potential:</strong> +${suggestions.improvement_potential} points |
+                    <strong>Timeline:</strong> ${suggestions.timeline_to_perfect}
+                </p>
+            </div>
+        `;
+        
+        // Display individual suggestions
+        if (suggestions.suggestions && suggestions.suggestions.length > 0) {
+            suggestions.suggestions.forEach((suggestion, idx) => {
+                html += `
+                    <div class="improvement-suggestion">
+                        <div class="category">${suggestion.category}</div>
+                        <div class="status">
+                            <strong>${suggestion.issue}</strong><br>
+                            Current: ${suggestion.current_status} | Target: ${suggestion.target}
+                        </div>
+                        <div style="color: #3fb950; font-weight: bold; margin: 10px 0;">
+                            +${suggestion.improvement_points} points to health score | ${suggestion.severity} Priority
+                        </div>
+                        
+                        <div class="protocols">
+                            <h5>ACUTE_PHASE (0-2 weeks):</h5>
+                            <ul>
+                                ${suggestion.acute_protocol.map(p => `<li>${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="protocols">
+                            <h5>INTENSIVE_PHASE (2-8 weeks):</h5>
+                            <ul>
+                                ${suggestion.intensive_protocol.map(p => `<li>${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="protocols">
+                            <h5>PRODUCT_RECOMMENDATIONS:</h5>
+                            <ul>
+                                ${suggestion.product_recommendations.map(p => `<li>✓ ${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="timeline">
+                            ⏱️ Expected Timeline: ${suggestion.timeline_weeks} weeks for visible improvement
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        container.innerHTML = html;
+        container.style.display = 'block';
+
+        // Update the summary and tips cards
+        const scoreValue = document.querySelector('#score-card .score-value');
+        const scoreSummary = document.getElementById('score-summary');
+        const routineContent = document.getElementById('routine-content');
+        const tipsContent = document.getElementById('tips-content');
+
+        if (scoreValue) {
+            scoreValue.innerText = `${suggestions.current_score}/100`;
+        }
+        if (scoreSummary) {
+            scoreSummary.innerText = `Build to ${suggestions.target_score}/100 with an ${suggestions.improvement_potential}-point improvement path over ${suggestions.timeline_to_perfect}. Follow the prioritized routines below for daily barrier repair and long-term resilience.`;
+        }
+
+        if (routineContent) {
+            const dailyStrategy = (suggestions.prevention_strategies || []).find(s => s.strategy === 'DAILY_SKINCARE_PROTOCOL');
+            if (dailyStrategy) {
+                routineContent.innerHTML = `
+                    <strong>MORNING:</strong>
+                    <ul>
+                        ${dailyStrategy.morning.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                    <strong>EVENING:</strong>
+                    <ul>
+                        ${dailyStrategy.evening.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                    ${dailyStrategy.weekly ? `
+                    <strong>WEEKLY:</strong>
+                    <ul>
+                        ${dailyStrategy.weekly.map(item => `<li>${item}</li>`).join('')}
+                    </ul>` : ''}
+                `;
+            } else {
+                routineContent.innerHTML = '<p style="color: var(--text-dim);">No personalized daily routine available. Follow the main recovery protocols for best results.</p>';
+            }
+        }
+
+        if (tipsContent) {
+            const tips = (suggestions.suggestions || [])
+                .slice(0, 5)
+                .map(s => `✓ Focus on ${s.issue.toLowerCase()}`);
+            tipsContent.innerHTML = `<ul>${tips.map(t => `<li>${t}</li>`).join('')}</ul>`;
+        }
+
+        // Load recovery protocols
+        loadRecoveryProtocols(suggestions);
+    }
+
+    function loadRecoveryProtocols(suggestions) {
+        const protocols = suggestions.prevention_strategies || [];
+        let protocolsHtml = {};
+        
+        // General improvement protocol
+        protocolsHtml['general'] = `
+            <h4>10/10 PERFECT_SKIN_TARGET_PROTOCOL</h4>
+            <p style="color: var(--text-dim); margin-bottom: 15px;">
+                Comprehensive daily, weekly, and lifestyle protocols to achieve and maintain perfect skin health.
+            </p>
+        `;
+        
+        protocols.forEach(strategy => {
+            if (strategy.strategy === 'DAILY_SKINCARE_PROTOCOL') {
+                protocolsHtml['general'] += `
+                    <h4 style="color: var(--orange); margin-top: 15px;">DAILY_SKINCARE_ROUTINE</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h5 style="color: #3fb950;">MORNING_ROUTINE:</h5>
+                            <ul style="margin: 0; padding-left: 20px;">
+                                ${strategy.morning.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 style="color: #388bfd;">EVENING_ROUTINE:</h5>
+                            <ul style="margin: 0; padding-left: 20px;">
+                                ${strategy.evening.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    ${strategy.weekly ? `
+                    <div style="margin-top: 15px;">
+                        <h5 style="color: #d29922;">WEEKLY_ROUTINE:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${strategy.weekly.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                `;
+            } else if (strategy.strategy === 'LIFESTYLE_INTEGRATION') {
+                protocolsHtml['general'] += `
+                    <h4 style="color: var(--orange); margin-top: 15px;">LIFESTYLE_INTEGRATION</h4>
+                    ${strategy.sleep ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #8b949e;">SLEEP_OPTIMIZATION:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${strategy.sleep.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                    ${strategy.nutrition ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #8b949e;">NUTRITION_PROTOCOL:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${strategy.nutrition.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                    ${strategy.exercise ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #8b949e;">EXERCISE_INTEGRATION:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${strategy.exercise.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                    ${strategy.stress_management ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #8b949e;">STRESS_MANAGEMENT:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${strategy.stress_management.map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                    ${strategy.factors ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #8b949e;">GENERAL_FACTORS:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${strategy.factors.map(f => `<li>${f}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                `;
+            } else if (strategy.strategy === 'MEDICATION_PROTOCOLS') {
+                protocolsHtml['general'] += `
+                    <h4 style="color: var(--orange); margin-top: 15px;">MEDICATION_PROTOCOLS</h4>
+                    ${strategy.topical_medications ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #d1184c;">TOPICAL_MEDICATIONS:</h5>
+                        ${strategy.topical_medications.map(med => `
+                            <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                                <strong>${med.condition}:</strong>
+                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                    ${med.options.map(opt => `<li>${opt}</li>`).join('')}
+                                </ul>
+                                <small style="color: var(--text-dim);">Usage: ${med.usage} | Duration: ${med.duration}</small>
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
+                    ${strategy.oral_medications ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #d1184c;">ORAL_MEDICATIONS:</h5>
+                        ${strategy.oral_medications.map(med => `
+                            <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                                <strong>${med.condition}:</strong>
+                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                    ${med.options.map(opt => `<li>${opt}</li>`).join('')}
+                                </ul>
+                                <small style="color: var(--text-dim);">Monitoring: ${med.monitoring}</small>
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
+                    ${strategy.supplements ? `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #388bfd;">SUPPLEMENTS:</h5>
+                        ${strategy.supplements.map(supp => `
+                            <div style="background: rgba(56, 139, 253, 0.1); border: 1px solid #388bfd; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                                <strong>${supp.supplement}:</strong> ${supp.dosage} daily<br>
+                                <small style="color: var(--text-dim);">Benefits: ${supp.benefits} | Monitoring: ${supp.monitoring}</small>
+                            </div>
+                        `).join('')}
+                    </div>` : ''}
+                `;
+            } else if (strategy.strategy === 'SEASONAL_ADAPTATIONS') {
+                protocolsHtml['general'] += `
+                    <h4 style="color: var(--orange); margin-top: 15px;">SEASONAL_ADAPTATIONS</h4>
+                    ${Object.keys(strategy).filter(key => key !== 'strategy').map(season => `
+                        <div style="margin-bottom: 15px;">
+                            <h5 style="color: #d29922; text-transform: uppercase;">${season}_PROTOCOL:</h5>
+                            <ul style="margin: 0; padding-left: 20px;">
+                                ${strategy[season].map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                `;
+            } else if (strategy.strategy === 'PROFESSIONAL_TREATMENTS') {
+                protocolsHtml['general'] += `
+                    <h4 style="color: var(--orange); margin-top: 15px;">PROFESSIONAL_TREATMENTS</h4>
+                    ${Object.keys(strategy).filter(key => key !== 'strategy').map(frequency => `
+                        <div style="margin-bottom: 15px;">
+                            <h5 style="color: #3fb950; text-transform: uppercase;">${frequency}_VISITS:</h5>
+                            <ul style="margin: 0; padding-left: 20px;">
+                                ${strategy[frequency].map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                `;
+            } else if (strategy.strategy === 'SUPPLEMENT_PROTOCOL') {
+                protocolsHtml['general'] += `
+                    <h4 style="color: var(--orange); margin-top: 15px;">SUPPLEMENT_PROTOCOL</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        ${strategy.recommendations.map(r => `<li>${r}</li>`).join('')}
+                    </ul>
+                `;
+            }
+        });
+        
+        // Hydration protocol
+        const hydrationProtocol = suggestions.suggestions.find(s => s.category === 'HYDRATION_OPTIMIZATION');
+        if (hydrationProtocol) {
+            protocolsHtml['hydration'] = `
+                <h4>${hydrationProtocol.category}</h4>
+                <p><strong>${hydrationProtocol.issue}</strong></p>
+                <h5 style="color: #3fb950;">ACUTE_TREATMENT:</h5>
+                <ul>${hydrationProtocol.acute_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
+                <h5 style="color: #388bfd;">INTENSIVE_TREATMENT:</h5>
+                <ul>${hydrationProtocol.intensive_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
+                <div class="timeline">⏱️ Timeline: ${hydrationProtocol.timeline_weeks} weeks</div>
+            `;
+        }
+        
+        // Elasticity protocol
+        const elasticityProtocol = suggestions.suggestions.find(s => s.category === 'ELASTICITY_RESTORATION');
+        if (elasticityProtocol) {
+            protocolsHtml['elasticity'] = `
+                <h4>${elasticityProtocol.category}</h4>
+                <p><strong>${elasticityProtocol.issue}</strong></p>
+                <h5 style="color: #3fb950;">ACUTE_TREATMENT:</h5>
+                <ul>${elasticityProtocol.acute_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
+                <h5 style="color: #388bfd;">INTENSIVE_TREATMENT:</h5>
+                <ul>${elasticityProtocol.intensive_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
+                <div class="timeline">⏱️ Timeline: ${elasticityProtocol.timeline_weeks} weeks</div>
+            `;
+        }
+        
+        // Medications protocol
+        const medicationsStrategy = protocols.find(s => s.strategy === 'MEDICATION_PROTOCOLS');
+        if (medicationsStrategy) {
+            protocolsHtml['medications'] = `
+                <h4>MEDICATION_PROTOCOLS</h4>
+                <p style="color: var(--text-dim); margin-bottom: 15px;">
+                    Prescription and over-the-counter medications tailored to your skin condition.
+                </p>
+                ${medicationsStrategy.topical_medications ? `
+                <h5 style="color: #d1184c;">TOPICAL_MEDICATIONS:</h5>
+                ${medicationsStrategy.topical_medications.map(med => `
+                    <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                        <strong>${med.condition}:</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            ${med.options.map(opt => `<li>${opt}</li>`).join('')}
+                        </ul>
+                        <small style="color: var(--text-dim);">Usage: ${med.usage} | Duration: ${med.duration}</small>
+                    </div>
+                `).join('')}` : '<p>No topical medications recommended.</p>'}
+                ${medicationsStrategy.oral_medications ? `
+                <h5 style="color: #d1184c; margin-top: 15px;">ORAL_MEDICATIONS:</h5>
+                ${medicationsStrategy.oral_medications.map(med => `
+                    <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                        <strong>${med.condition}:</strong>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            ${med.options.map(opt => `<li>${opt}</li>`).join('')}
+                        </ul>
+                        <small style="color: var(--text-dim);">Monitoring: ${med.monitoring}</small>
+                    </div>
+                `).join('')}` : '<p>No oral medications recommended.</p>'}
+            `;
+        }
+        
+        // Supplements protocol
+        const supplementsStrategy = protocols.find(s => s.strategy === 'MEDICATION_PROTOCOLS');
+        if (supplementsStrategy && supplementsStrategy.supplements) {
+            protocolsHtml['supplements'] = `
+                <h4>SUPPLEMENT_PROTOCOLS</h4>
+                <p style="color: var(--text-dim); margin-bottom: 15px;">
+                    Evidence-based supplements to support skin health from within.
+                </p>
+                ${supplementsStrategy.supplements.map(supp => `
+                    <div style="background: rgba(56, 139, 253, 0.1); border: 1px solid #388bfd; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
+                        <strong>${supp.supplement}:</strong> ${supp.dosage} daily<br>
+                        <small style="color: var(--text-dim);">Benefits: ${supp.benefits} | Monitoring: ${supp.monitoring}</small>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        // Professional treatments protocol
+        const professionalStrategy = protocols.find(s => s.strategy === 'PROFESSIONAL_TREATMENTS');
+        if (professionalStrategy) {
+            protocolsHtml['professional'] = `
+                <h4>PROFESSIONAL_TREATMENT_FRAMEWORK</h4>
+                <p style="color: var(--text-dim); margin-bottom: 15px;">
+                    Recommended professional treatments and consultation schedule.
+                </p>
+                ${Object.keys(professionalStrategy).filter(key => key !== 'strategy').map(frequency => `
+                    <div style="margin-bottom: 15px;">
+                        <h5 style="color: #3fb950; text-transform: uppercase;">${frequency}_VISITS:</h5>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${professionalStrategy[frequency].map(s => `<li>${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        // Set up protocol tab switching
+        const protocolContent = document.getElementById('protocol-content');
+        const tabs = document.querySelectorAll('.protocol-tab');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const protocol = this.getAttribute('data-protocol');
+                protocolContent.innerHTML = protocolsHtml[protocol] || '<p>No specific protocol available.</p>';
+            });
+        });
+        
+        // Show default protocol
+        protocolContent.innerHTML = protocolsHtml['general'] || '<p>Loading protocols...</p>';
+    }
+
+    function showImprovementError() {
+        document.getElementById('improvements-loading').style.display = 'none';
+        document.getElementById('improvements-error').style.display = 'block';
+    }
+
+    // Load suggestions on page load
+    window.addEventListener('load', loadImprovementSuggestions);
+</script>
+{% endblock %}

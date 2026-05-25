@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Access - DermaVisionAI{% endblock %}
+
+{% block content %}
+<style>
+    /* 🚀 $900K EDITORIAL LUXURY PALETTE */
+    :root {
+        --accent-primary: #E25822; /* Burnt Sienna */
+        --accent-glow: rgba(226, 88, 34, 0.3);
+        --obsidian: #0D0D0D;
+        --glass-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .gateway-container {
+        display: flex;
+        min-height: 100vh;
+        background: var(--obsidian);
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        overflow: hidden;
+    }
+
+    /* Left Side: Editorial Model Visual */
+    .gateway-visual {
+        flex: 1.4;
+        position: relative;
+        /* Updated with high-end editorial model portrait */
+        background: url('http://googleusercontent.com/image_collection/image_retrieval/565457659956962506_0') center/cover no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Cinematic Sunset Gradient Overlay */
+    .gateway-visual::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(75deg, var(--obsidian) 5%, transparent 40%, transparent 60%, var(--obsidian) 95%),
+                    linear-gradient(to top, var(--obsidian) 0%, transparent 30%);
+        z-index: 1;
+    }
+
+    /* Floating UI Element over the photo */
+    .module-badge {
+        position: relative;
+        z-index: 2;
+        background: rgba(13, 13, 13, 0.4);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid var(--glass-border);
+        padding: 30px;
+        border-radius: 4px;
+        text-align: center;
+        box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    }
+
+    .module-badge h2 {
+        font-size: 0.75rem;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        color: var(--accent-primary);
+        margin-bottom: 12px;
+        font-weight: 800;
+    }
+
+    .module-badge p {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin: 0;
+        letter-spacing: -1px;
+        color: white;
+    }
+
+    /* Right Side: Auth Vault */
+    .gateway-auth {
+        flex: 1;
+        background: #080808;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 80px;
+        border-left: 1px solid var(--glass-border);
+        z-index: 10;
+        position: relative;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 360px;
+    }
+
+    .auth-header h1 {
+        font-size: 3.2rem;
+        font-weight: 800;
+        letter-spacing: -3px;
+        margin-bottom: 12px;
+        background: linear-gradient(to bottom, #fff, #999);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .auth-header p {
+        color: #555;
+        margin-bottom: 50px;
+        font-size: 1rem;
+        font-weight: 300;
+    }
+
+    /* Minimalist Field Styling */
+    .field {
+        margin-bottom: 45px;
+        position: relative;
+    }
+
+    .field input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #222;
+        padding: 12px 0;
+        color: white;
+        font-size: 1.05rem;
+        transition: 0.4s;
+    }
+
+    .field label {
+        position: absolute;
+        top: 12px;
+        left: 0;
+        color: #444;
+        pointer-events: none;
+        transition: 0.3s;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 2px;
+        font-weight: 700;
+    }
+
+    .field input:focus ~ label,
+    .field input:valid ~ label {
+        top: -22px;
+        color: var(--accent-primary);
+        font-size: 0.6rem;
+    }
+
+    .field input:focus {
+        outline: none;
+        border-bottom: 1px solid var(--accent-primary);
+    }
+
+    /* Premium Action Button */
+    .btn-login {
+        width: 100%;
+        padding: 22px;
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+        border-radius: 2px;
+    }
+
+    .btn-login:hover {
+        background: #fff;
+        color: #000;
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    }
+
+    .auth-footer {
+        margin-top: 45px;
+        font-size: 0.75rem;
+        color: #333;
+        letter-spacing: 1px;
+    }
+
+    .auth-footer a {
+        color: #777;
+        text-decoration: none;
+        border-bottom: 1px solid #222;
+        padding-bottom: 2px;
+        transition: 0.3s;
+        font-weight: 600;
+    }
+
+    .auth-footer a:hover {
+        color: var(--accent-primary);
+        border-color: var(--accent-primary);
+    }
+
+    /* 📽️ Cinematic Grain Texture */
+    .grain {
+        position: fixed;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        opacity: 0.05;
+        pointer-events: none;
+        z-index: 100;
+    }
+</style>
+
+<div class="gateway-container">
+    <div class="grain"></div>
+
+    <div class="gateway-visual">
+        <div class="module-badge">
+            <h2>PROTOCOL 04</h2>
+            <p>Dermal Intelligence</p>
+        </div>
+    </div>
+
+    <div class="gateway-auth">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Access</h1>
+                <p>Verify your credentials to continue.</p>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div style="color: var(--accent-primary); font-size: 0.75rem; margin-bottom: 35px; font-weight: 800; border: 1px solid var(--accent-primary); padding: 12px; border-radius: 2px;">
+                        [ SYSTEM ERROR: {{ messages[0]|upper }} ]
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <div class="field">
+                    <input type="text" name="username" required>
+                    <label>Personnel Identifier</label>
+                </div>
+
+                <div class="field">
+                    <input type="password" name="password" required>
+                    <label>Security Key</label>
+                </div>
+
+                <button type="submit" class="btn-login">Establish Connection</button>
+            </form>
+
+            <div class="auth-footer">
+                Secured Environment. <a href="/register">Request Access</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

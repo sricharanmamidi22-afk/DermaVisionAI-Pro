@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="ledger-terminal">
+    <div class="grid-overlay"></div>
+    <div class="vignette"></div>
+    <div class="scanline"></div>
+
+    <div class="ledger-frame">
+        <header class="ledger-header">
+            <div class="title-group">
+                <div class="status-indicator">
+                    <div class="dot pulse-blue"></div>
+                    <span class="mono-font">SECURE_DATABASE_LINK_ACTIVE</span>
+                </div>
+                <h1 class="glitch-text" data-text="SCAN_ARCHIVE_LEDGER">SCAN_ARCHIVE_LEDGER</h1>
+            </div>
+            
+            <div class="stats-ribbon">
+                <div class="stat-item">
+                    <span class="label">RECORDS_INDEXED</span>
+                    <span class="value">{{ logs|length }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">DATABASE_HEALTH</span>
+                    <span class="value" style="color: #3fb950;">100%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">STATION_ID</span>
+                    <span class="value">DV-PRO-88</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="filter-bar">
+            <div class="search-input">
+                <span class="icon">⌕</span>
+                <input type="text" id="ledgerSearch" placeholder="SEARCH_BY_UUID_OR_TAG..." onkeyup="filterTable()">
+            </div>
+            <div class="filter-actions">
+                <button class="action-btn" onclick="exportData()">EXPORT_CSV</button>
+                <button class="action-btn danger" onclick="clearLogs()">WIPE_LOCAL_BUFFER</button>
+            </div>
+        </div>
+
+        <main class="table-container shadow-glow">
+            <table class="cyber-table" id="ledgerTable">
+                <thead>
+                    <tr>
+                        <th width="15%">UUID_HASH</th>
+                        <th width="18%">TIMESTAMP_UTC</th>
+                        <th width="10%">PREVIEW</th>
+                        <th width="18%">ANALYSIS_CONFIDENCE</th>
+                        <th width="13%">STATUS_FLAG</th>
+                        <th width="14%">DEEP_REPORT</th>
+                        <th width="12%">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="ledger-row" data-scan-id="{{ log.scan_id }}">
+                        <td class="mono-font highlight">{{ log.scan_id }}</td>
+                        <td class="timestamp">{{ log.timestamp }}</td>
+                        <td>
+                            <div class="mini-thumb">
+                                <img src="{{ log.image_url }}" alt="Scan" loading="lazy">
+                                <div class="thumb-overlay"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="confidence-container">
+                                <div class="meter-bg">
+                                    <div class="meter-fill" style="width: {{ log.confidence }}%"></div>
+                                </div>
+                                <span class="meter-value">{{ log.confidence }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-tag {{ log.status_class }}">
+                                {{ log.result }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/report/{{ log.scan_id }}" class="cyber-link-btn">
+                                <span class="text">ACCESS_DATA</span>
+                                <span class="arrow">»</span>
+                            </a>
+                        </td>
+                        <td>
+                            <button class="action-btn danger small" onclick="deleteScan('{{ log.scan_id }}', this)">DELETE</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    
+                    {% if not logs %}
+                    <tr class="empty-row">
+                        <td colspan="6">
+                            <div class="empty-state">
+                                <div class="warning-icon">⚠</div>
+                                <p>NO_ACTIVE_RECORDS_DETECTED_IN_THIS_NODE</p>
+                                <small>INITIATE NEW SCAN TO POPULATE DATABASE</small>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </main>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :root {
+        --cyan: #00f3ff;
+        --orange: #E25822;
+        --bg-black: #020406;
+        --row-bg: rgba(255, 255, 255, 0.02);
+        --accent-glow: rgba(0, 243, 255, 0.15);
+    }
+
+    body { background: var(--bg-black); color: #e6edf3; font-family: 'JetBrains Mono', monospace; overflow-x: hidden; }
+
+    /* LAYOUT EXCELLENCE */
+    .ledger-terminal { padding: 60px 20px; min-height: 100vh; position: relative; }
+    .ledger-frame { max-width: 1300px; margin: 0 auto; position: relative; z-index: 5; }
+
+    /* HEADER HUD */
+    .ledger-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; }
+    .status-indicator { display: flex; align-items: center; gap: 8px; font-size: 0.65rem; color: var(--cyan); margin-bottom: 8px; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+    .pulse-blue { animation: pulseBlue 2s infinite; }
+    
+    h1 { font-family: 'Orbitron'; font-size: 2.2rem; margin: 0; letter-spacing: 4px; text-transform: uppercase; }
+
+    .stats-ribbon { display: flex; gap: 30px; background: rgba(0,0,0,0.5); padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
+    .stat-item { border-left: 2px solid var(--orange); padding-left: 15px; }
+    .stat-item .label { display: block; font-size: 0.55rem; color: #888; }
+    .stat-item .value { font-family: 'Orbitron'; font-size: 1.1rem; }
+
+    /* SEARCH BAR */
+    .filter-bar { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
+    .search-input { position: relative; flex-grow: 1; }
+    .search-input input { 
+        width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); 
+        padding: 12px 40px; color: #fff; font-family: 'JetBrains Mono'; border-radius: 4px;
+    }
+    .search-input .icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--cyan); }
+
+    /* TABLE */
+    .table-container { 
+        background: rgba(13, 17, 23, 0.8); border: 1px solid rgba(0, 243, 255, 0.1); 
+        border-radius: 4px; backdrop-filter: blur(20px);
+    }
+    .cyber-table { width: 100%; border-collapse: collapse; }
+    th { 
+        text-align: left; padding: 20px; font-family: 'Orbitron'; font-size: 0.7rem; 
+        color: var(--cyan); border-bottom: 1px solid rgba(0, 243, 255, 0.2); text-transform: uppercase;
+    }
+    td { padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.85rem; vertical-align: middle; }
+    
+    .ledger-row:hover { background: rgba(0, 243, 255, 0.03); }
+    .highlight { color: var(--cyan); }
+
+    /* THUMBNAILS */
+    .mini-thumb { 
+        width: 50px; height: 50px; border: 1px solid rgba(255,255,255,0.1); 
+        position: relative; overflow: hidden; border-radius: 2px;
+    }
+    .mini-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb-overlay { position: absolute; inset: 0; background: linear-gradient(transparent, rgba(0, 243, 255, 0.2)); }
+
+    /* CONFIDENCE METER */
+    .confidence-container { display: flex; align-items: center; gap: 12px; }
+    .meter-bg { flex-grow: 1; height: 4px; background: #1a1d23; border-radius: 2px; }
+    .meter-fill { height: 100%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .meter-value { font-size: 0.75rem; min-width: 35px; }
+
+    /* BUTTONS */
+    .cyber-link-btn {
+        display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px;
+        border: 1px solid var(--cyan); color: var(--cyan); text-decoration: none;
+        font-family: 'Orbitron'; font-size: 0.65rem; transition: 0.3s;
+    }
+    .action-btn.small {
+        padding: 8px 12px;
+        font-size: 0.7rem;
+        border-radius: 4px;
+    }
+    .action-btn.danger { background: rgba(226, 88, 34, 0.1); color: #ff8c7f; border: 1px solid rgba(226, 88, 34, 0.4); }
+    .action-btn.danger:hover { background: rgba(226, 88, 34, 0.2); }
+    .cyber-link-btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 15px var(--cyan); }
+
+    /* ANIMATIONS */
+    @keyframes pulseBlue { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    
+    .shadow-glow { box-shadow: 0 0 40px rgba(0,0,0,0.5), inset 0 0 20px rgba(0, 243, 255, 0.05); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 80px 20px; }
+    .warning-icon { font-size: 2rem; color: var(--orange); margin-bottom: 15px; }
+</style>
+
+<script>
+    // Real-time Table Filter Logic
+    function filterTable() {
+        const input = document.getElementById("ledgerSearch");
+        const filter = input.value.toUpperCase();
+        const table = document.getElementById("ledgerTable");
+        const tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            let found = false;
+            const cells = tr[i].getElementsByTagName("td");
+            for (let j = 0; j < cells.length; j++) {
+                if (cells[j].innerText.toUpperCase().indexOf(filter) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+            tr[i].style.display = found ? "" : "none";
+        }
+    }
+
+    // Professional Data Export Simulation
+    function exportData() {
+        alert("PREPARING_ENCRYPTED_CSV_EXPORT...");
+        // Logic to convert 'logs' to CSV would go here
+    }
+
+    async function deleteScan(scanId, button) {
+        if (!confirm('DELETE_SCAN_PERMANENTLY?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/scan/${scanId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            if (response.ok && data.status === 'SUCCESS') {
+                const row = button.closest('tr');
+                if (row) row.remove();
+                alert(`SCAN ${scanId} REMOVED FROM LEDGER`);
+            } else {
+                throw new Error(data.message || 'Delete failed');
+            }
+        } catch (error) {
+            console.error('Delete scan error:', error);
+            alert('FAILED_TO_DELETE_SCAN');
+        }
+    }
+</script>
+{% endblock %}

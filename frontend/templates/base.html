@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DERMAVISION | Neural Skin Diagnostics{% endblock %}</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --accent: #E25822; /* Clinical Orange */
+            --accent-bright: #ff6a31;
+            --accent-glow: rgba(226, 88, 34, 0.4);
+            --obsidian: #050505;
+            --glass: rgba(10, 10, 10, 0.75);
+            --stroke: rgba(255, 255, 255, 0.08);
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: crosshair; }
+
+        body {
+            background-color: var(--obsidian);
+            color: #f0f0f0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* --- 🎞️ CINEMATIC ENVIRONMENT --- */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.8) 100%),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .glow-orb {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            top: -15vw;
+            right: -10vw;
+            filter: blur(120px);
+            z-index: -1;
+            animation: orbFloat 25s infinite alternate ease-in-out;
+        }
+
+        @keyframes orbFloat {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-10%, 10%) scale(1.1); }
+        }
+
+        /* --- 🧭 COMMAND NAVIGATION --- */
+        .navbar {
+            position: fixed;
+            top: 0; width: 100%;
+            height: 90px;
+            padding: 0 60px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            border-bottom: 1px solid var(--stroke);
+            backdrop-filter: blur(25px);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            letter-spacing: 3px;
+            font-size: 0.85rem;
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        .nav-brand svg { margin-right: 15px; filter: drop-shadow(0 0 5px var(--accent)); }
+        .nav-brand span { color: var(--accent); margin-left: 5px; }
+
+        .nav-menu { display: flex; gap: 40px; list-style: none; }
+        
+        .nav-link {
+            text-decoration: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .nav-link:hover { color: var(--accent); text-shadow: 0 0 15px var(--accent-glow); }
+        .nav-link.active { color: #fff; }
+
+        /* --- 🧬 BIOMETRIC SIDEBAR HUD --- */
+        .biometric-hud {
+            position: fixed;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            z-index: 500;
+            pointer-events: none;
+        }
+
+        .hud-item {
+            font-family: var(--font-mono);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            padding-left: 15px;
+            transition: 0.5s;
+        }
+
+        .hud-label {
+            display: block;
+            font-size: 0.5rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .hud-value {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #aaa;
+        }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="glow-orb"></div>
+
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5">
+                <path d="M12 21c-4.418 0-8-3.582-8-8 0-4.418 3.582-8 8-8s8 3.582 8 8c0 4.418-3.582 8-8 8z" />
+                <path d="M12 11c-1.5 0-2 1-2 2s.5 2 2 2 2-1 2-2-.5-2-2-2z" fill="var(--accent)" />
+                <path d="M12 7V3m0 18v-2M5 13H3m18 0h-2" stroke-linecap="round"/>
+            </svg>
+            DERMA<span>VISION</span> // SKIN_GLOW_V4
+        </a>
+        <ul class="nav-menu">
+            <li><a href="/" class="nav-link">Bio_Terminal</a></li>
+            {% if current_user.is_authenticated %}
+                <li><a href="/scanner" class="nav-link">Spectral_Scan</a></li>
+                <li><a href="/ledger" class="nav-link">Ledger</a></li>
+                <li><a href="/logout" class="nav-link">Exit_Session</a></li>
+            {% else %}
+                <li><a href="/login" class="nav-link">Authenticate</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="biometric-hud">
+        <div class="hud-item">
+            <span class="hud-label">SENS_ISO</span>
+            <span class="hud-value">0.0024ms</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">GLOW_INDEX</span>
+            <span class="hud-value" style="color: var(--accent);">CALIBRATING...</span>
+        </div>
+        <div class="hud-item">
+            <span class="hud-label">NEURAL_SYNC</span>
+            <span class="hud-value">STABLE</span>
+        </div>
+    </div>
+
+    <main style="padding-top: 130px; min-height: 100vh; position: relative; z-index: 10;">
+        {% block content %}{% endblock %}
+    </main>
+
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,788 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="neural-terminal">
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <!-- Ambient Background Layers -->
+    <div class="parallax-grid"></div>
+    <div class="crt-overlay"></div>
+    <div class="scanline-fx"></div>
+    
+    <div class="ui-frame">
+        <!-- HEADER HUD -->
+        <header class="hud-header">
+            <div class="brand-group">
+                <div class="status-orb pulse"></div>
+                <div class="title-stack">
+                    <span class="glitch-text" data-text="DERMA_VISION_PRO">DERMA_VISION_PRO</span>
+                    <small>SECURE_STATION_v5.2.0_R7</small>
+                </div>
+            </div>
+            <div class="telemetry-readout">
+                <div class="data-point">
+                    <label>OPTIC_FEED</label>
+                    <span id="fps-counter" class="value">60.0 FPS</span>
+                </div>
+                <div class="data-point">
+                    <label>SIGNAL</label>
+                    <span class="value" style="color: var(--cyan);">ENCRYPTED</span>
+                </div>
+                <div class="clock-group">
+                    <span id="digital-clock">00:00:00</span>
+                    <small>GMT+5.5</small>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN VIEWPORT -->
+        <main class="viewport-outer">
+            <!-- Corner Decals -->
+            <div class="corner-accents">
+                <div class="acc tl"></div><div class="acc tr"></div>
+                <div class="acc bl"></div><div class="acc br"></div>
+            </div>
+
+            <div class="viewport-inner" id="flash-target">
+                <!-- Video Layers -->
+                <video id="video-feed" autoplay playsinline muted></video>
+                <canvas id="neural-overlay"></canvas>
+                
+                <!-- Animated Scanners -->
+                <div class="laser-scanner"></div>
+                <div class="face-bracket"></div>
+                
+                <!-- Floating Telemetry -->
+                <div class="hud-label top-left">
+                    <div class="id-tag">SUBJECT_0092</div>
+                    <div class="sub-text">BONE_DENSITY: STABLE</div>
+                </div>
+
+                <div class="hud-label bottom-left">
+                    <div class="id-tag">NEURAL_SYNC</div>
+                    <div class="sync-bar"><div class="fill"></div></div>
+                </div>
+
+                <div class="hud-label bottom-right">
+                    <div class="id-tag">FACE_STATUS</div>
+                    <div id="face-status" class="value status-searching">SEARCHING...</div>
+                </div>
+
+                <!-- Face Detection Overlay -->
+                <div id="face-overlay" class="face-detection-overlay">
+                    <div class="face-bounds"></div>
+                    <div class="landmarks"></div>
+                </div>
+
+                <!-- Status Animations -->
+                <div id="detection-success" class="detection-feedback success">
+                    <div class="pulse-ring"></div>
+                    <div class="success-icon">✓</div>
+                    <span>FACE_DETECTED</span>
+                </div>
+
+                <div id="detection-failed" class="detection-feedback failed">
+                    <div class="error-icon">⚠</div>
+                    <span>NO_FACE_DETECTED</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- FOOTER CONSOLE -->
+        <footer class="console-footer">
+            <div class="terminal-log">
+                <span class="prompt">SYSTEM@DERMA:~$</span>
+                <span id="console-msg" class="typing-text">WAITING_FOR_HARDWARE_PERMISSIONS...</span>
+            </div>
+            
+            <div class="control-cluster">
+                <input type="file" id="file-upload" accept="image/*" style="display:none;">
+                <button id="import-btn" class="cyber-btn" data-label="LOCAL_INGEST">
+                    <span>LOCAL_INGEST</span>
+                </button>
+                <button id="capture-btn" class="cyber-btn primary" data-label="INITIATE_SCAN">
+                    <span>INITIATE_SCAN</span>
+                </button>
+            </div>
+        </footer>
+
+        <!-- ANALYSIS REPORT PANEL -->
+        <section id="analysis-panel" class="analysis-panel hidden">
+            <div class="panel-header">
+                <div>
+                    <span class="panel-tag">REALTIME_AI_REPORT</span>
+                    <h2>Skin Condition Analysis</h2>
+                </div>
+                <button id="scroll-to-report" class="scroll-button">Scroll to Report</button>
+            </div>
+
+            <div class="report-summary">
+                <div class="summary-left">
+                    <div class="health-card">
+                        <span>HEALTH SCORE</span>
+                        <strong id="health-score">0</strong>
+                        <small>AI damage and condition score</small>
+                    </div>
+                    <div class="status-card" id="analysis-status">PROCESSING_AWAITING_SCAN</div>
+                    <div class="skin-profile" id="skin-profile"></div>
+                </div>
+                <div class="summary-right" id="top-conditions">
+                    <!-- Top conditions will populate here -->
+                </div>
+            </div>
+
+            <div class="metrics-grid" id="metrics-grid">
+                <!-- Condition cards inserted here -->
+            </div>
+
+            <div class="report-actions">
+                <button id="view-full-report" class="cyber-btn primary">VIEW_FULL_REPORT</button>
+            </div>
+        </section>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :root { 
+        --orange: #E25822; 
+        --orange-muted: rgba(226, 88, 34, 0.2);
+        --cyan: #00f3ff; 
+        --bg-deep: #020204;
+    }
+
+    body { background: var(--bg-deep); color: #fff; font-family: 'JetBrains Mono', monospace; margin: 0; overflow-x: hidden; overflow-y: auto; }
+
+    /* LAYOUT EXCELLENCE */
+    .neural-terminal { height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; }
+    .ui-frame { width: 92vw; max-width: 1300px; display: flex; flex-direction: column; gap: 20px; z-index: 10; max-height: calc(100vh - 40px); overflow-y: auto; padding-right: 10px; }
+
+    /* HUD HEADER */
+    .hud-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--orange-muted); padding-bottom: 15px; }
+    .brand-group { display: flex; align-items: center; gap: 15px; }
+    .status-orb { width: 10px; height: 10px; background: var(--orange); border-radius: 50%; box-shadow: 0 0 15px var(--orange); }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    .title-stack span { display: block; font-family: 'Orbitron'; font-weight: 700; letter-spacing: 2px; font-size: 1.2rem; }
+    .telemetry-readout { display: flex; gap: 30px; text-align: right; }
+    .data-point label { display: block; font-size: 0.6rem; color: #888; }
+    .data-point .value { font-family: 'Orbitron'; font-size: 0.9rem; }
+
+    /* VIEWPORT STYLING */
+    .viewport-outer { position: relative; padding: 4px; background: linear-gradient(135deg, var(--orange-muted), transparent); border-radius: 4px; }
+    .viewport-inner { 
+        position: relative; aspect-ratio: 16/9; background: #000; border: 1px solid rgba(255,255,255,0.1); 
+        overflow: hidden; box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+    }
+    #video-feed { width: 100%; height: 100%; object-fit: cover; filter: sepia(0.2) contrast(1.1) brightness(0.9); }
+    #neural-overlay { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0.8; }
+
+    /* ANIMATED ELEMENTS */
+    .laser-scanner {
+        position: absolute; width: 100%; height: 2px; background: var(--orange);
+        box-shadow: 0 0 25px var(--orange); top: -10%; animation: scanMove 4s infinite linear; z-index: 10;
+    }
+    @keyframes scanMove { 0% { top: -5%; } 100% { top: 105%; } }
+
+    .face-bracket {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 300px; height: 350px; border: 1px solid rgba(0, 243, 255, 0.2);
+        box-shadow: 0 0 30px rgba(0, 243, 255, 0.05); pointer-events: none;
+    }
+
+    /* LABELS */
+    .hud-label { position: absolute; padding: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); border: 1px solid var(--orange-muted); z-index: 15; }
+    .top-left { top: 20px; left: 20px; border-left: 4px solid var(--orange); }
+    .bottom-left { bottom: 20px; left: 20px; width: 150px; }
+    .bottom-right { bottom: 20px; right: 20px; text-align: right; }
+    .sync-bar { height: 4px; background: #222; margin-top: 5px; }
+    .sync-bar .fill { height: 100%; background: var(--cyan); width: 65%; animation: grow 3s infinite; }
+
+    /* CONSOLE */
+    .console-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .terminal-log { color: #888; font-size: 0.9rem; }
+    .prompt { color: var(--orange); margin-right: 10px; }
+
+    /* CYBER BUTTONS */
+    .control-cluster { display: flex; gap: 15px; }
+    .cyber-btn {
+        background: transparent; color: #fff; border: 1px solid var(--orange);
+        padding: 12px 25px; font-family: 'Orbitron'; font-size: 0.8rem;
+        position: relative; cursor: pointer; overflow: hidden; transition: 0.3s;
+    }
+    .cyber-btn.primary { background: var(--orange); font-weight: bold; }
+    .cyber-btn:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+
+    /* OVERLAYS */
+    .scanline-fx { 
+        position: fixed; inset: 0; z-index: 100; pointer-events: none;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+        background-size: 100% 3px, 3px 100%;
+    }
+
+    .analysis-panel {
+        margin-top: 30px;
+        padding: 24px;
+        background: rgba(10, 10, 15, 0.95);
+        border: 1px solid rgba(0, 243, 255, 0.15);
+        box-shadow: 0 0 40px rgba(0, 243, 255, 0.08);
+        border-radius: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 5;
+    }
+
+    .analysis-panel.hidden { display: none; }
+
+    .panel-header { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .panel-tag { font-family: 'Orbitron'; letter-spacing: 2px; font-size: 0.72rem; color: var(--orange); }
+    .analysis-panel h2 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+
+    .report-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .summary-left { display: grid; gap: 16px; }
+    .health-card { padding: 20px; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; }
+    .health-card span { display: block; font-size: 0.75rem; color: #bbb; margin-bottom: 10px; }
+    .health-card strong { font-size: 3rem; display: block; line-height: 1; color: var(--cyan); }
+    .health-card small { color: #888; }
+
+    .status-card { padding: 16px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 243, 255, 0.12); border-radius: 14px; font-size: 0.9rem; letter-spacing: 1px; color: var(--cyan); }
+
+    .skin-profile { display: grid; gap: 12px; padding: 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(0, 243, 255, 0.12); border-radius: 14px; }
+    .profile-item { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .profile-item span { font-size: 0.75rem; color: #888; letter-spacing: 1px; }
+    .profile-item strong { font-size: 1rem; color: #fff; }
+
+    .summary-right { display: grid; gap: 12px; }
+    .condition-pill { padding: 12px 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(0, 243, 255, 0.12); border-radius: 999px; color: #fff; font-size: 0.8rem; }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+    .metric-card { padding: 18px; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .metric-card strong { font-size: 1.8rem; color: var(--cyan); }
+    .metric-card span { font-size: 0.82rem; color: #ccc; }
+
+    .report-actions { display: flex; justify-content: flex-end; }
+    .scroll-button, .report-actions .cyber-btn { min-width: 180px; }
+
+    .scroll-button { background: rgba(0, 243, 255, 0.08); color: #fff; border: 1px solid rgba(0, 243, 255, 0.18); padding: 12px 20px; border-radius: 12px; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; }
+    .scroll-button:hover { transform: translateY(-2px); background: rgba(0, 243, 255, 0.14); }
+
+    /* FACE DETECTION STYLES */
+    .face-detection-overlay {
+        position: absolute; inset: 0; z-index: 8; pointer-events: none;
+        opacity: 0; transition: opacity 0.3s ease;
+    }
+    .face-detection-overlay.active { opacity: 1; }
+
+    .face-bounds {
+        position: absolute; border: 2px solid var(--cyan);
+        box-shadow: 0 0 20px var(--cyan); border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+
+    .landmarks {
+        position: absolute; width: 100%; height: 100%;
+    }
+    .landmark-point {
+        position: absolute; width: 4px; height: 4px;
+        background: var(--orange); border-radius: 50%;
+        box-shadow: 0 0 8px var(--orange);
+    }
+
+    /* DETECTION FEEDBACK */
+    .detection-feedback {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        display: flex; flex-direction: column; align-items: center; gap: 10px;
+        opacity: 0; transition: all 0.5s ease; z-index: 20; pointer-events: none;
+    }
+
+    .detection-feedback.active { opacity: 1; }
+
+    .pulse-ring {
+        width: 80px; height: 80px; border: 3px solid var(--cyan);
+        border-radius: 50%; animation: pulseRing 2s infinite;
+    }
+    @keyframes pulseRing {
+        0% { transform: scale(0.8); opacity: 1; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    .success-icon {
+        width: 60px; height: 60px; background: var(--cyan);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 30px; font-weight: bold; color: #000; animation: successPulse 0.6s ease;
+    }
+    @keyframes successPulse {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    .error-icon {
+        width: 60px; height: 60px; background: var(--orange);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 30px; animation: errorShake 0.6s ease;
+    }
+    @keyframes errorShake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .detection-feedback span {
+        font-family: 'Orbitron'; font-size: 0.9rem; font-weight: bold;
+        text-shadow: 0 0 10px currentColor;
+    }
+
+    .detection-feedback.success span { color: var(--cyan); }
+    .detection-feedback.failed span { color: var(--orange); }
+
+    /* STATUS COLORS */
+    .status-searching { color: #888; }
+    .status-detected { color: var(--cyan); animation: glowPulse 2s infinite; }
+    .status-not-detected { color: var(--orange); }
+
+    @keyframes glowPulse {
+        0%, 100% { text-shadow: 0 0 5px var(--cyan); }
+        50% { text-shadow: 0 0 20px var(--cyan), 0 0 30px var(--cyan); }
+    }
+</style>
+
+<script>
+    const video = document.getElementById('video-feed');
+    const canvas = document.getElementById('neural-overlay');
+    const ctx = canvas.getContext('2d');
+    const consoleMsg = document.getElementById('console-msg');
+    const faceStatus = document.getElementById('face-status');
+    const faceOverlay = document.getElementById('face-overlay');
+    const detectionSuccess = document.getElementById('detection-success');
+    const detectionFailed = document.getElementById('detection-failed');
+    const analysisPanel = document.getElementById('analysis-panel');
+    const healthScoreEl = document.getElementById('health-score');
+    const skinProfile = document.getElementById('skin-profile');
+    const metricsGrid = document.getElementById('metrics-grid');
+    const topConditions = document.getElementById('top-conditions');
+    const analysisStatus = document.getElementById('analysis-status');
+    const scrollButton = document.getElementById('scroll-to-report');
+    const viewReportButton = document.getElementById('view-full-report');
+
+    let faceDetectionInterval;
+    let isFaceDetected = false;
+    let faceApiLoaded = false;
+    let currentScanId = null;
+
+    scrollButton?.addEventListener('click', () => {
+        analysisPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    viewReportButton?.addEventListener('click', () => {
+        if (currentScanId) {
+            window.location.href = `/report/${currentScanId}`;
+        }
+    });
+
+    function showAnalysisPanel() {
+        analysisPanel?.classList.remove('hidden');
+        analysisPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderAnalysisResults(results, scanId) {
+        if (!results) return;
+        currentScanId = scanId || currentScanId;
+        showAnalysisPanel();
+
+        const tooltipMap = {
+            health_score: 'Overall skin health score',
+            health_index: 'Overall health index',
+            brightness: 'Skin glow brightness',
+            hydration: 'Hydration index',
+            acne: 'Acne severity',
+            hyperpigmentation: 'Pigmentation imbalance',
+            dark_circles: 'Under-eye darkness',
+            wrinkles: 'Wrinkle severity',
+            oiliness: 'Sebum balance',
+            large_pores: 'Pore size estimate',
+            dryness: 'Skin hydration level',
+            fine_lines: 'Fine line presence'
+        };
+
+        const healthScoreValue = results.health_score ?? results.health_index;
+        analysisStatus.innerText = results.status ? results.status.replace(/_/g, ' ') : 'AI ANALYSIS COMPLETE';
+        healthScoreEl.innerText = (healthScoreValue !== undefined && healthScoreValue !== null)
+            ? Number(healthScoreValue).toFixed(1)
+            : 'NA';
+        topConditions.innerHTML = '';
+
+        if (skinProfile) {
+            skinProfile.innerHTML = `
+                <div class="profile-item">
+                    <span>Skin Type</span>
+                    <strong>${results.skin_type || 'Unknown'}</strong>
+                </div>
+                <div class="profile-item">
+                    <span>Sensitivity</span>
+                    <strong>${results.sensitivity || 'Unknown'}</strong>
+                </div>
+                <div class="profile-item">
+                    <span>Diagnosis</span>
+                    <strong>${results.diagnosis || 'Balanced skin condition'}</strong>
+                </div>
+            `;
+        }
+
+        const sorted = Object.entries(results)
+            .filter(([key, value]) => Object.keys(tooltipMap).includes(key) && typeof value === 'number')
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4);
+
+        sorted.forEach(([key, value]) => {
+            const pill = document.createElement('div');
+            pill.className = 'condition-pill';
+            pill.innerText = `${key.replace(/_/g, ' ').toUpperCase()}: ${Number(value).toFixed(1)}%`;
+            topConditions.appendChild(pill);
+        });
+
+        metricsGrid.innerHTML = '';
+        Object.entries(results)
+            .filter(([key, value]) => Object.keys(tooltipMap).includes(key) && typeof value === 'number')
+            .forEach(([key, value]) => {
+                const card = document.createElement('div');
+                card.className = 'metric-card';
+                card.innerHTML = `
+                    <span>${key.replace(/_/g, ' ').toUpperCase()}</span>
+                    <strong>${Number(value).toFixed(1)}%</strong>
+                    <small>${tooltipMap[key]}</small>
+                `;
+                metricsGrid.appendChild(card);
+            });
+
+        // Add any supplemental status details if available
+        if (results.diagnosis) {
+            const diagnosisCard = document.createElement('div');
+            diagnosisCard.className = 'metric-card';
+            diagnosisCard.innerHTML = `
+                <span>DIAGNOSIS</span>
+                <strong>${results.diagnosis}</strong>
+                <small>AI interpretation of skin condition</small>
+            `;
+            metricsGrid.appendChild(diagnosisCard);
+        }
+    }
+
+    function handleAnalysisResult(data) {
+        const results = data.telemetry || data;
+        if (data.scan_id) currentScanId = data.scan_id;
+
+        if (!results || Object.keys(results).length === 0) {
+            updateLog('ANALYSIS_FAILED: NO_RESULTS_RETURNED');
+            return;
+        }
+
+        renderAnalysisResults(results, currentScanId);
+    }
+
+    // 1. LOAD FACE-API.JS MODELS
+    async function loadFaceApiModels() {
+        updateLog("LOADING_AI_MODELS...");
+        try {
+            await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models/');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('/static/models/');
+            faceApiLoaded = true;
+            updateLog("AI_MODELS_LOADED: FACE_DETECTION_ACTIVE");
+        } catch (error) {
+            console.error('Face API loading failed:', error);
+            updateLog("AI_MODELS_FAILED: FALLBACK_MODE");
+            // Fallback to basic detection
+        }
+    }
+
+    // 2. SYSTEM INITIALIZATION
+    async function startOpticLink() {
+        updateLog("INITIALIZING_CAMERA_DRIVERS...");
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user' 
+                } 
+            });
+            video.srcObject = stream;
+            
+            video.onloadedmetadata = async () => {
+                video.play();
+                updateLog("NEURAL_OPTIC_STABLE: CALIBRATING_SENSORS");
+                
+                // Initialize canvas size
+                canvas.width = video.clientWidth;
+                canvas.height = video.clientHeight;
+                
+                // Load face detection models
+                await loadFaceApiModels();
+                
+                // Start face detection
+                startFaceDetection();
+                
+                // Start HUD rendering
+                requestAnimationFrame(drawProceduralMesh);
+            };
+        } catch (err) {
+            updateLog("HARDWARE_FAILURE: CAMERA_NOT_FOUND");
+            console.error('Camera error:', err);
+        }
+    }
+
+    function updateLog(msg) {
+        consoleMsg.innerText = msg;
+    }
+
+    // 3. FACE DETECTION SYSTEM
+    async function startFaceDetection() {
+        if (!faceApiLoaded) return;
+        
+        faceDetectionInterval = setInterval(async () => {
+            try {
+                const detections = await faceapi.detectAllFaces(
+                    video, 
+                    new faceapi.TinyFaceDetectorOptions({ 
+                        inputSize: 512, 
+                        scoreThreshold: 0.5 
+                    })
+                ).withFaceLandmarks();
+
+                updateFaceDetectionStatus(detections);
+                drawFaceOverlay(detections);
+                
+            } catch (error) {
+                console.error('Face detection error:', error);
+                updateFaceDetectionStatus([]);
+            }
+        }, 100); // Check every 100ms
+    }
+
+    function updateFaceDetectionStatus(detections) {
+        const wasDetected = isFaceDetected;
+        isFaceDetected = detections.length > 0;
+
+        if (isFaceDetected) {
+            faceStatus.innerText = "DETECTED";
+            faceStatus.className = "value status-detected";
+            
+            if (!wasDetected) {
+                // Show success animation
+                showDetectionFeedback('success');
+                updateLog("FACE_DETECTED: READY_FOR_ANALYSIS");
+            }
+        } else {
+            faceStatus.innerText = "SEARCHING...";
+            faceStatus.className = "value status-searching";
+            
+            if (wasDetected) {
+                // Show failure animation
+                showDetectionFeedback('failed');
+                updateLog("FACE_LOST: POSITION_CORRECTLY");
+            }
+        }
+    }
+
+    function showDetectionFeedback(type) {
+        // Hide both feedbacks first
+        detectionSuccess.classList.remove('active');
+        detectionFailed.classList.remove('active');
+        
+        // Show the appropriate feedback
+        const feedback = type === 'success' ? detectionSuccess : detectionFailed;
+        feedback.classList.add('active');
+        
+        // Hide after animation
+        setTimeout(() => {
+            feedback.classList.remove('active');
+        }, 2000);
+    }
+
+    function drawFaceOverlay(detections) {
+        const overlay = faceOverlay;
+        const bounds = overlay.querySelector('.face-bounds');
+        const landmarks = overlay.querySelector('.landmarks');
+        
+        // Clear previous landmarks
+        landmarks.innerHTML = '';
+        
+        if (detections.length > 0) {
+            overlay.classList.add('active');
+            
+            const detection = detections[0];
+            const box = detection.detection.box;
+            
+            // Update face bounds
+            bounds.style.left = box.x + 'px';
+            bounds.style.top = box.y + 'px';
+            bounds.style.width = box.width + 'px';
+            bounds.style.height = box.height + 'px';
+            
+            // Draw landmarks if available
+            if (detection.landmarks) {
+                detection.landmarks.positions.forEach(point => {
+                    const landmark = document.createElement('div');
+                    landmark.className = 'landmark-point';
+                    landmark.style.left = point.x + 'px';
+                    landmark.style.top = point.y + 'px';
+                    landmarks.appendChild(landmark);
+                });
+            }
+        } else {
+            overlay.classList.remove('active');
+        }
+    }
+
+    // 4. ADVANCED PROCEDURAL TRACKING MESH
+    function drawProceduralMesh() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const time = Date.now() * 0.001;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        // Draw HUD Crosshair (only when face detected)
+        if (isFaceDetected) {
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(centerX - 150, centerY - 175, 300, 350);
+            
+            // Draw success particles
+            for(let i = 0; i < 20; i++) {
+                const angle = (i / 20) * Math.PI * 2 + time;
+                const radius = 160 + Math.sin(time * 2 + i) * 20;
+                const x = centerX + Math.cos(angle) * radius;
+                const y = centerY + Math.sin(angle) * radius;
+
+                ctx.fillStyle = `rgba(0, 243, 255, ${0.3 + Math.sin(time + i) * 0.2})`;
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else {
+            // Draw searching pattern
+            ctx.strokeStyle = 'rgba(226, 88, 34, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 150 + Math.sin(time * 3) * 10, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw scanning dots
+            for(let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2 + time * 2;
+                const x = centerX + Math.cos(angle) * 140;
+                const y = centerY + Math.sin(angle) * 140;
+                
+                ctx.fillStyle = i % 3 === 0 ? 'var(--orange)' : 'rgba(136, 136, 136, 0.5)';
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        requestAnimationFrame(drawProceduralMesh);
+    }
+
+    // 5. CAPTURE & ANALYSIS (ONLY WHEN FACE DETECTED)
+    document.getElementById('capture-btn').addEventListener('click', async () => {
+        if (!isFaceDetected) {
+            showDetectionFeedback('failed');
+            updateLog("ERROR: NO_FACE_DETECTED - POSITION_CORRECTLY");
+            return;
+        }
+
+        // Visual Feedback
+        document.getElementById('flash-target').classList.add('flash-active');
+        setTimeout(() => document.getElementById('flash-target').classList.remove('flash-active'), 500);
+        
+        updateLog("CAPTURING_HIGH_RES_SUBSTRATE...");
+
+        const snap = document.createElement('canvas');
+        snap.width = video.videoWidth;
+        snap.height = video.videoHeight;
+        snap.getContext('2d').drawImage(video, 0, 0);
+
+        try {
+            // Convert to blob for better handling
+            const blob = await new Promise(resolve => {
+                snap.toBlob(resolve, 'image/jpeg', 0.95);
+            });
+
+            const formData = new FormData();
+            formData.append('image', blob, 'facial_scan.jpg');
+
+            const response = await fetch('/api/analyze', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if(data.status === "SUCCESS") {
+                updateLog("AI_ANALYSIS_COMPLETE: PROCESSING_RESULTS");
+                handleAnalysisResult(data);
+            } else {
+                throw new Error(data.message || 'Analysis failed');
+            }
+        } catch (e) {
+            console.error('Analysis error:', e);
+            updateLog("ANALYSIS_FAILED: " + e.message);
+        }
+    });
+
+    // 6. FILE IMPORT
+    document.getElementById('import-btn').addEventListener('click', () => {
+        document.getElementById('file-upload').click();
+    });
+    
+    document.getElementById('file-upload').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            updateLog("PROCESSING_IMPORTED_IMAGE...");
+            
+            // For imported images, we'll allow analysis regardless of face detection
+            // since the user explicitly chose the image
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                if(data.status === "SUCCESS") {
+                    updateLog("AI_ANALYSIS_COMPLETE: PROCESSING_RESULTS");
+                    handleAnalysisResult(data);
+                } else {
+                    throw new Error(data.message || 'Analysis failed');
+                }
+            } catch (error) {
+                console.error('Import analysis error:', error);
+                updateLog("IMPORT_FAILED: " + error.message);
+            }
+        }
+    });
+
+    // 7. CLOCK & CLEANUP
+    setInterval(() => {
+        document.getElementById('digital-clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }, 1000);
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+        if (faceDetectionInterval) {
+            clearInterval(faceDetectionInterval);
+        }
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+    });
+
+    // Initialize everything
+    window.onload = startOpticLink;
+</script>
+{% endblock %}
