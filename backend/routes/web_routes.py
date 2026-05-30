@@ -67,7 +67,7 @@ def report(analysis_id):
             'timestamp': scan.timestamp.strftime('%Y-%m-%d %H:%M:%S') if scan.timestamp else '',
         })()
         
-        image_url = f'/static/uploads/{scan.image_path}' if scan.image_path else '/static/uploads/default.png'
+        image_url = f'/uploads/{scan.image_path}' if scan.image_path else '/static/uploads/default.png'
         return render_template('report.html', analysis=analysis, image_url=image_url, scan_id=scan.id)
     
     # Try to find by Analysis id (integer)
@@ -78,7 +78,7 @@ def report(analysis_id):
             abort(403)
         
         # Construct image URL from image_path
-        image_url = f'/static/uploads/{analysis.image_path}' if analysis.image_path else '/static/uploads/default.png'
+        image_url = f'/uploads/{analysis.image_path}' if analysis.image_path else '/static/uploads/default.png'
         scan_id = analysis.id
         
         return render_template('report.html', analysis=analysis, image_url=image_url, scan_id=scan_id)

@@ -28,7 +28,7 @@ class Scan(db.Model):
         return {
             'scan_id': self.scan_id,
             'timestamp': self.timestamp.strftime('%Y-%m-%d %H:%M:%S') if self.timestamp else '',
-            'image_url': f'/static/uploads/{self.image_path}',
+            'image_url': f'/uploads/{self.image_path}',
             'confidence': int(self.confidence),
             'result': self.diagnosis,
             'status_class': 'status-normal' if self.confidence > 70 else 'status-warning'

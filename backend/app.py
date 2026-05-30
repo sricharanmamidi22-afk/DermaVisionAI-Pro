@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, jsonify
+from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, login_required, logout_user
 import os
@@ -23,13 +23,26 @@ def create_app():
     # --- 🏗️ CONFIGURATION ---
     app.config.update(
         SECRET_KEY="dermavision-luxury-secret-2026",
-        UPLOAD_FOLDER=os.path.join(app.static_folder, "uploads"),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
         MAX_CONTENT_LENGTH=16 * 1024 * 1024
     )
     
     basedir = os.path.abspath(os.path.dirname(__file__))
-    app.config["SQLALCHEMY_DATABASE_URI"] = f'sqlite:///{os.path.join(basedir, "database", "dermavision.db")}'
+
+    if os.getenv("VERCEL"):
+        default_db_path = os.path.join("/tmp", "dermavision.db")
+        default_upload_folder = os.path.join("/tmp", "uploads")
+    else:
+        default_db_path = os.path.join(basedir, "database", "dermavision.db")
+        default_upload_folder = os.path.join(app.static_folder, "uploads")
+
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    else:
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{default_db_path}"
+
+    app.config["UPLOAD_FOLDER"] = os.getenv("UPLOAD_FOLDER", default_upload_folder)
 
     # --- 🧩 EXTENSIONS ---
     CORS(app)
@@ -136,13 +149,19 @@ def create_app():
         app.register_blueprint(api_bp, url_prefix="/api")
     if 'web' not in app.blueprints:
         app.register_blueprint(web_bp)
+
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
     
     # Custom Filter
     app.jinja_env.filters['from_json'] = json.loads
     
     return app
 
+# Expose a top-level app for WSGI / serverless platforms
+app = create_app()
+
 if __name__ == "__main__":
-    derma_app = create_app()
     print("\n[START] DERMA_OS: NEURAL CORE ONLINE")
-    derma_app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000)
