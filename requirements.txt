@@ -12,6 +12,6 @@ matplotlib==3.7.2
 pandas==2.0.3
 seaborn==0.12.2
 tqdm==4.65.0
-h5py==3.9.0
+h5py==3.10.0
 google-generativeai>=0.3.0
 python-dotenv>=1.0.0
