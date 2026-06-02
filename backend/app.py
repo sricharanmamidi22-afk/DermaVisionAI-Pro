@@ -1,3 +1,22 @@
+try:
+    import pyparsing as _pp
+    # Provide backwards/forwards-compatible aliases for common name differences
+    if not hasattr(_pp, "DelimitedList") and hasattr(_pp, "delimitedList"):
+        _pp.DelimitedList = _pp.delimitedList
+
+    # Ensure ParserElement has both set_name and setName for compat
+    try:
+        ParserElem = getattr(_pp, "ParserElement", None)
+        if ParserElem is not None:
+            if not hasattr(ParserElem, "set_name") and hasattr(ParserElem, "setName"):
+                setattr(ParserElem, "set_name", ParserElem.setName)
+            if not hasattr(ParserElem, "setName") and hasattr(ParserElem, "set_name"):
+                setattr(ParserElem, "setName", ParserElem.set_name)
+    except Exception:
+        pass
+except Exception:
+    pass
+
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, login_required, logout_user

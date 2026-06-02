@@ -3,20 +3,6 @@ import os
 import json
 from dotenv import load_dotenv
 
-# Dynamically load available LLM client libraries.
-try:
-    genai = importlib.import_module('google.genai')
-except ImportError:
-    try:
-        genai = importlib.import_module('google.generativeai')
-    except ImportError:
-        genai = None
-
-try:
-    openai = importlib.import_module('openai')
-except ImportError:
-    openai = None
-
 load_dotenv()
 
 class ChatbotService:
@@ -54,6 +40,23 @@ NEURAL_VERDICT: Always conclude with specialist consultation recommendation"""
         self.llm_engine = 'local'
         self.model = None
 
+        # Lazy-load available LLM client libraries to avoid heavy import-time side-effects
+        try:
+            self.genai = importlib.import_module('google.genai')
+        except ImportError:
+            try:
+                import warnings
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=FutureWarning)
+                    self.genai = importlib.import_module('google.generativeai')
+            except ImportError:
+                self.genai = None
+
+        try:
+            self.openai = importlib.import_module('openai')
+        except ImportError:
+            self.openai = None
+
         # Try Gemini first if configured
         self.gemini_api_key = os.getenv('GOOGLE_GEMINI_API_KEY', '').strip()
         self.openai_api_key = os.getenv('OPENAI_API_KEY', '').strip()
@@ -61,22 +64,22 @@ NEURAL_VERDICT: Always conclude with specialist consultation recommendation"""
         self.gemini_model = os.getenv('GOOGLE_GEMINI_MODEL', 'gemini-pro')
 
         if self.gemini_api_key:
-            if genai is not None:
+            if self.genai is not None:
                 try:
-                    genai.configure(api_key=self.gemini_api_key)
-                    self.model = genai.GenerativeModel(self.gemini_model)
+                    self.genai.configure(api_key=self.gemini_api_key)
+                    self.model = self.genai.GenerativeModel(self.gemini_model)
                     self.llm_engine = 'gemini'
                     self.llm_available = True
                     print(f"[INFO] Gemini LLM enabled with model {self.gemini_model}.")
                 except Exception as e:
                     print(f"[WARN] Gemini initialization failed: {e}")
             else:
-                print("[WARN] GOOGLE_GEMINI_API_KEY set but google-generativeai package is missing. Install google-generativeai to enable Gemini.")
+                print("[WARN] GOOGLE_GEMINI_API_KEY set but google-genai/google-generativeai package is missing. Install google-genai or google-generativeai to enable Gemini.")
 
         if not self.llm_available and self.openai_api_key:
-            if openai is not None:
+            if self.openai is not None:
                 try:
-                    openai.api_key = self.openai_api_key
+                    self.openai.api_key = self.openai_api_key
                     self.llm_engine = 'openai'
                     self.llm_available = True
                     print(f"[INFO] OpenAI LLM enabled with model {self.openai_model}.")
