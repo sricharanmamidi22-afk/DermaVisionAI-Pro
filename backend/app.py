@@ -30,6 +30,7 @@ from flask_cors import CORS
 from flask_login import LoginManager, login_user, login_required, logout_user
 import os
 import json
+import threading
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Modular Imports
@@ -79,14 +80,23 @@ def create_app():
     login_manager.login_view = 'login' 
     login_manager.init_app(app)
 
-    # --- 🤖 AI SERVICES INIT ---
-    # We use a try-except block so the app doesn't crash if models aren't ready
-    try:
-        app.face_detector = FaceDetector()
-        app.skin_analyzer = SkinAnalyzer()
-        app.chatbot_service = ChatbotService()
-    except Exception as e:
-        print(f"[ERROR] AI Service Init Failed: {e}")
+    # --- 🤖 AI SERVICES INIT (non-blocking) ---
+    # Initialize attributes immediately and start a background thread
+    # so worker startup is fast and health checks succeed.
+    app.face_detector = None
+    app.skin_analyzer = None
+    app.chatbot_service = None
+
+    def _init_ai_services():
+        try:
+            app.face_detector = FaceDetector()
+            app.skin_analyzer = SkinAnalyzer()
+            app.chatbot_service = ChatbotService()
+            print("[OK] AI Services initialized")
+        except Exception as e:
+            print(f"[ERROR] AI Service Init Failed: {e}")
+
+    threading.Thread(target=_init_ai_services, daemon=True).start()
 
     # --- 📂 SYSTEM INIT ---
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -97,6 +107,11 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    # Lightweight health endpoint for readiness checks
+    @app.route('/health')
+    def health():
+        return jsonify({"status": "ok"}), 200
 
     # --- 🔐 AUTH ROUTES ---
     @app.route('/register', methods=['GET', 'POST'])
