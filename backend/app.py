@@ -28,7 +28,7 @@ if root not in sys.path:
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, login_required, logout_user
-import os
+from sqlalchemy.exc import OperationalError
 import json
 import threading
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -102,7 +102,14 @@ def create_app():
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all(checkfirst=True)
+        except OperationalError as e:
+            msg = str(e).lower()
+            if "already exists" in msg or "table users already exists" in msg:
+                print("[WARN] Database already initialized; skipping create_all.")
+            else:
+                raise
 
     @login_manager.user_loader
     def load_user(user_id):

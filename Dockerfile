@@ -7,6 +7,11 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Ensure application root is on PYTHONPATH so imports like `import backend` work
@@ -34,4 +39,4 @@ ENV FLASK_ENV=production
 # Run the application with Gunicorn in production
 ENV PORT=5000
 # Use shell form so $PORT is expanded at runtime
-CMD gunicorn backend.app:app --bind 0.0.0.0:$PORT --workers 2
+CMD gunicorn backend.app:app --bind 0.0.0.0:$PORT --workers 2 --preload --timeout 120
