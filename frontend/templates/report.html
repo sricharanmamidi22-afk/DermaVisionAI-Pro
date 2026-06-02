@@ -462,7 +462,7 @@
     // ====== LOAD AI IMPROVEMENT SUGGESTIONS ======
     async function loadImprovementSuggestions() {
         try {
-            const response = await fetch(`/api/improvement-suggestions/${scanId}`);
+            const response = await fetch(`/api/improvement-suggestions/${scanId}`, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
             const data = await parseJsonOrError(response);
             
             if (data.status === 'SUCCESS') {

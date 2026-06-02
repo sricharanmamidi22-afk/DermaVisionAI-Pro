@@ -55,6 +55,11 @@ def analyze_skin():
             f.write(image_data)
 
         # ML Engine Execution Pipeline 
+        # Ensure AI services are initialized before calling into them
+        if not getattr(current_app, 'face_detector', None) or not getattr(current_app, 'skin_analyzer', None):
+            print(f"[WARN] ANALYZE_REQUEST_RECEIVED_BUT_AI_NOT_READY - face_detector={bool(getattr(current_app,'face_detector',None))} skin_analyzer={bool(getattr(current_app,'skin_analyzer',None))}")
+            return jsonify({"status": "ERROR", "message": "AI services are not initialized. Please try again shortly."}), 503
+
         face = current_app.face_detector.detect_and_crop(filepath)
         results = current_app.skin_analyzer.analyze(filepath, face_img=face)
         
@@ -91,8 +96,15 @@ def analyze_skin():
 
     except Exception as e:
         db.session.rollback()
-        print(f"[ERROR] BACKEND CRASH: {str(e)}")
-        return jsonify({"status": "ERROR", "message": "Internal pipeline processing fault execution."}), 500
+        # Log extensive context for debugging on Render
+        try:
+            user_info = f"user_id={current_user.id if hasattr(current_user, 'id') else 'anon'}"
+        except Exception:
+            user_info = 'user_info_unavailable'
+
+        print(f"[ERROR] BACKEND CRASH: {str(e)} | {user_info} | file={filepath}")
+        # Return a clear JSON error so frontend doesn't try to parse HTML
+        return jsonify({"status": "ERROR", "message": "Internal pipeline processing fault execution.", "details": str(e)}), 500
 
 
 @api_bp.route('/scan/<scan_id>', methods=['DELETE'])
