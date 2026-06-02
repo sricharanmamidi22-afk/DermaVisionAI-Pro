@@ -102,14 +102,7 @@ def create_app():
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     
     with app.app_context():
-        try:
-            db.create_all(checkfirst=True)
-        except OperationalError as e:
-            msg = str(e).lower()
-            if "already exists" in msg or "table users already exists" in msg:
-                print("[WARN] Database already initialized; skipping create_all.")
-            else:
-                raise
+        db.create_all()
 
     @login_manager.user_loader
     def load_user(user_id):
