@@ -17,6 +17,14 @@ try:
 except Exception:
     pass
 
+import sys
+import os
+# Ensure project root is on sys.path so `import backend.*` works even if the
+# process is started from a different working directory or via `python backend/app.py`.
+root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if root not in sys.path:
+    sys.path.insert(0, root)
+
 from flask import Flask, render_template, redirect, url_for, flash, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, login_required, logout_user

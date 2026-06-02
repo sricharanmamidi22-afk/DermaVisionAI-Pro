@@ -1,5 +1,5 @@
-# Use Python 3.9 slim image
-FROM python:3.9-slim
+# Use Python 3.11.13 slim image to match runtime.txt and app dependencies
+FROM python:3.11.13-slim
 
 # Set working directory
 WORKDIR /app
@@ -8,6 +8,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     && rm -rf /var/lib/apt/lists/*
+
+# Ensure application root is on PYTHONPATH so imports like `import backend` work
+ENV PYTHONPATH=/app
 
 # Copy requirements first for better caching
 COPY requirements.txt .
@@ -28,5 +31,7 @@ EXPOSE 5000
 ENV FLASK_APP=backend/app.py
 ENV FLASK_ENV=production
 
-# Run the application
-CMD ["python", "backend/app.py"]
+# Run the application with Gunicorn in production
+ENV PORT=5000
+# Use shell form so $PORT is expanded at runtime
+CMD gunicorn backend.app:app --bind 0.0.0.0:$PORT --workers 2
