@@ -79,6 +79,13 @@ def create_app():
     login_manager = LoginManager()
     login_manager.login_view = 'login' 
     login_manager.init_app(app)
+    login_manager.login_message = None
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        if request.path.startswith('/api/') or request.headers.get('Accept', '').lower().startswith('application/json'):
+            return jsonify({"status": "ERROR", "message": "Authentication required."}), 401
+        return redirect(url_for('login'))
 
     # --- 🤖 AI SERVICES INIT (non-blocking) ---
     # Initialize attributes immediately and start a background thread

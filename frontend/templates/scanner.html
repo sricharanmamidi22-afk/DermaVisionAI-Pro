@@ -482,6 +482,15 @@
         renderAnalysisResults(results, currentScanId);
     }
 
+    async function parseJsonOrError(response) {
+        const text = await response.text();
+        try {
+            return JSON.parse(text);
+        } catch (err) {
+            throw new Error(`Unexpected response: ${response.status} ${response.statusText} - ${text.slice(0, 300)}`);
+        }
+    }
+
     // 1. LOAD FACE-API.JS MODELS
     async function loadFaceApiModels() {
         updateLog("LOADING_AI_MODELS...");
@@ -718,8 +727,7 @@
                 method: 'POST',
                 body: formData
             });
-
-            const data = await response.json();
+            const data = await parseJsonOrError(response);
             if(data.status === "SUCCESS") {
                 updateLog("AI_ANALYSIS_COMPLETE: PROCESSING_RESULTS");
                 handleAnalysisResult(data);
@@ -752,8 +760,7 @@
                     method: 'POST',
                     body: formData
                 });
-
-                const data = await response.json();
+                const data = await parseJsonOrError(response);
                 if(data.status === "SUCCESS") {
                     updateLog("AI_ANALYSIS_COMPLETE: PROCESSING_RESULTS");
                     handleAnalysisResult(data);
