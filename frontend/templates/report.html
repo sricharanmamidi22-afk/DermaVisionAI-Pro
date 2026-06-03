@@ -605,23 +605,32 @@
         protocolsHtml['general'] = `
             <h4>10/10 PERFECT_SKIN_TARGET_PROTOCOL</h4>
             <p style="color: var(--text-dim); margin-bottom: 15px;">
-                Comprehensive daily, weekly, and lifestyle protocols to achieve and maintain perfect skin health.
+                Comprehensive daily, weekly, and evidence-based care plans to restore and maintain your skin.
             </p>
         `;
+
+        if (suggestions.suggestions && suggestions.suggestions.length) {
+            protocolsHtml['general'] += `
+                <h5 style="color: #8b949e; margin-top: 15px;">KEY PRIORITIES</h5>
+                <ul style="margin: 0 0 15px 20px;">
+                    ${suggestions.suggestions.map(item => `<li><strong>${item.category}:</strong> ${item.issue}</li>`).join('')}
+                </ul>
+            `;
+        }
         
         protocols.forEach(strategy => {
             if (strategy.strategy === 'DAILY_SKINCARE_PROTOCOL') {
                 protocolsHtml['general'] += `
-                    <h4 style="color: var(--orange); margin-top: 15px;">DAILY_SKINCARE_ROUTINE</h4>
+                    <h4 style="color: var(--orange); margin-top: 20px;">DAILY_SKINCARE_PROTOCOL</h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div>
-                            <h5 style="color: #3fb950;">MORNING_ROUTINE:</h5>
+                            <h5 style="color: #3fb950;">MORNING ROUTINE</h5>
                             <ul style="margin: 0; padding-left: 20px;">
                                 ${strategy.morning.map(s => `<li>${s}</li>`).join('')}
                             </ul>
                         </div>
                         <div>
-                            <h5 style="color: #388bfd;">EVENING_ROUTINE:</h5>
+                            <h5 style="color: #388bfd;">EVENING ROUTINE</h5>
                             <ul style="margin: 0; padding-left: 20px;">
                                 ${strategy.evening.map(s => `<li>${s}</li>`).join('')}
                             </ul>
@@ -629,7 +638,7 @@
                     </div>
                     ${strategy.weekly ? `
                     <div style="margin-top: 15px;">
-                        <h5 style="color: #d29922;">WEEKLY_ROUTINE:</h5>
+                        <h5 style="color: #d29922;">WEEKLY ROUTINE</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             ${strategy.weekly.map(s => `<li>${s}</li>`).join('')}
                         </ul>
@@ -637,49 +646,42 @@
                 `;
             } else if (strategy.strategy === 'LIFESTYLE_INTEGRATION') {
                 protocolsHtml['general'] += `
-                    <h4 style="color: var(--orange); margin-top: 15px;">LIFESTYLE_INTEGRATION</h4>
+                    <h4 style="color: var(--orange); margin-top: 20px;">LIFESTYLE_INTEGRATION</h4>
                     ${strategy.sleep ? `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #8b949e;">SLEEP_OPTIMIZATION:</h5>
+                        <h5 style="color: #8b949e;">SLEEP_OPTIMIZATION</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             ${strategy.sleep.map(s => `<li>${s}</li>`).join('')}
                         </ul>
                     </div>` : ''}
                     ${strategy.nutrition ? `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #8b949e;">NUTRITION_PROTOCOL:</h5>
+                        <h5 style="color: #8b949e;">NUTRITION_PROTOCOL</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             ${strategy.nutrition.map(s => `<li>${s}</li>`).join('')}
                         </ul>
                     </div>` : ''}
                     ${strategy.exercise ? `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #8b949e;">EXERCISE_INTEGRATION:</h5>
+                        <h5 style="color: #8b949e;">EXERCISE_INTEGRATION</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             ${strategy.exercise.map(s => `<li>${s}</li>`).join('')}
                         </ul>
                     </div>` : ''}
                     ${strategy.stress_management ? `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #8b949e;">STRESS_MANAGEMENT:</h5>
+                        <h5 style="color: #8b949e;">STRESS_MANAGEMENT</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             ${strategy.stress_management.map(s => `<li>${s}</li>`).join('')}
-                        </ul>
-                    </div>` : ''}
-                    ${strategy.factors ? `
-                    <div style="margin-bottom: 15px;">
-                        <h5 style="color: #8b949e;">GENERAL_FACTORS:</h5>
-                        <ul style="margin: 0; padding-left: 20px;">
-                            ${strategy.factors.map(f => `<li>${f}</li>`).join('')}
                         </ul>
                     </div>` : ''}
                 `;
             } else if (strategy.strategy === 'MEDICATION_PROTOCOLS') {
                 protocolsHtml['general'] += `
-                    <h4 style="color: var(--orange); margin-top: 15px;">MEDICATION_PROTOCOLS</h4>
+                    <h4 style="color: var(--orange); margin-top: 20px;">MEDICATION_PROTOCOLS</h4>
                     ${strategy.topical_medications ? `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #d1184c;">TOPICAL_MEDICATIONS:</h5>
+                        <h5 style="color: #d1184c;">TOPICAL_MEDICATIONS</h5>
                         ${strategy.topical_medications.map(med => `
                             <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
                                 <strong>${med.condition}:</strong>
@@ -692,7 +694,7 @@
                     </div>` : ''}
                     ${strategy.oral_medications ? `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #d1184c;">ORAL_MEDICATIONS:</h5>
+                        <h5 style="color: #d1184c;">ORAL_MEDICATIONS</h5>
                         ${strategy.oral_medications.map(med => `
                             <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
                                 <strong>${med.condition}:</strong>
@@ -705,7 +707,7 @@
                     </div>` : ''}
                     ${strategy.supplements ? `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #388bfd;">SUPPLEMENTS:</h5>
+                        <h5 style="color: #388bfd;">SUPPLEMENTS</h5>
                         ${strategy.supplements.map(supp => `
                             <div style="background: rgba(56, 139, 253, 0.1); border: 1px solid #388bfd; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
                                 <strong>${supp.supplement}:</strong> ${supp.dosage} daily<br>
@@ -716,10 +718,10 @@
                 `;
             } else if (strategy.strategy === 'SEASONAL_ADAPTATIONS') {
                 protocolsHtml['general'] += `
-                    <h4 style="color: var(--orange); margin-top: 15px;">SEASONAL_ADAPTATIONS</h4>
+                    <h4 style="color: var(--orange); margin-top: 20px;">SEASONAL_ADAPTATIONS</h4>
                     ${Object.keys(strategy).filter(key => key !== 'strategy').map(season => `
                         <div style="margin-bottom: 15px;">
-                            <h5 style="color: #d29922; text-transform: uppercase;">${season}_PROTOCOL:</h5>
+                            <h5 style="color: #d29922; text-transform: uppercase;">${season}_PROTOCOL</h5>
                             <ul style="margin: 0; padding-left: 20px;">
                                 ${strategy[season].map(s => `<li>${s}</li>`).join('')}
                             </ul>
@@ -728,22 +730,15 @@
                 `;
             } else if (strategy.strategy === 'PROFESSIONAL_TREATMENTS') {
                 protocolsHtml['general'] += `
-                    <h4 style="color: var(--orange); margin-top: 15px;">PROFESSIONAL_TREATMENTS</h4>
+                    <h4 style="color: var(--orange); margin-top: 20px;">PROFESSIONAL_TREATMENTS</h4>
                     ${Object.keys(strategy).filter(key => key !== 'strategy').map(frequency => `
                         <div style="margin-bottom: 15px;">
-                            <h5 style="color: #3fb950; text-transform: uppercase;">${frequency}_VISITS:</h5>
+                            <h5 style="color: #3fb950; text-transform: uppercase;">${frequency}_VISITS</h5>
                             <ul style="margin: 0; padding-left: 20px;">
                                 ${strategy[frequency].map(s => `<li>${s}</li>`).join('')}
                             </ul>
                         </div>
                     `).join('')}
-                `;
-            } else if (strategy.strategy === 'SUPPLEMENT_PROTOCOL') {
-                protocolsHtml['general'] += `
-                    <h4 style="color: var(--orange); margin-top: 15px;">SUPPLEMENT_PROTOCOL</h4>
-                    <ul style="margin: 0; padding-left: 20px;">
-                        ${strategy.recommendations.map(r => `<li>${r}</li>`).join('')}
-                    </ul>
                 `;
             }
         });
@@ -754,11 +749,16 @@
             protocolsHtml['hydration'] = `
                 <h4>${hydrationProtocol.category}</h4>
                 <p><strong>${hydrationProtocol.issue}</strong></p>
-                <h5 style="color: #3fb950;">ACUTE_TREATMENT:</h5>
+                <h5 style="color: #3fb950;">ACUTE_TREATMENT</h5>
                 <ul>${hydrationProtocol.acute_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
-                <h5 style="color: #388bfd;">INTENSIVE_TREATMENT:</h5>
+                <h5 style="color: #388bfd;">INTENSIVE_TREATMENT</h5>
                 <ul>${hydrationProtocol.intensive_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
                 <div class="timeline">⏱️ Timeline: ${hydrationProtocol.timeline_weeks} weeks</div>
+            `;
+        } else {
+            protocolsHtml['hydration'] = `
+                <h4>Hydration Protocol</h4>
+                <p style="color: var(--text-dim);">No dedicated hydration protocol was generated. Follow the general recovery routine and increase barrier repair support.</p>
             `;
         }
         
@@ -768,24 +768,49 @@
             protocolsHtml['elasticity'] = `
                 <h4>${elasticityProtocol.category}</h4>
                 <p><strong>${elasticityProtocol.issue}</strong></p>
-                <h5 style="color: #3fb950;">ACUTE_TREATMENT:</h5>
+                <h5 style="color: #3fb950;">ACUTE_TREATMENT</h5>
                 <ul>${elasticityProtocol.acute_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
-                <h5 style="color: #388bfd;">INTENSIVE_TREATMENT:</h5>
+                <h5 style="color: #388bfd;">INTENSIVE_TREATMENT</h5>
                 <ul>${elasticityProtocol.intensive_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
                 <div class="timeline">⏱️ Timeline: ${elasticityProtocol.timeline_weeks} weeks</div>
+            `;
+        } else {
+            protocolsHtml['elasticity'] = `
+                <h4>Elasticity Protocol</h4>
+                <p style="color: var(--text-dim);">No specialized elasticity protocol was generated. Continue protective vitamin and peptide support.</p>
+            `;
+        }
+        
+        // Pore clarity protocol
+        const poreProtocol = suggestions.suggestions.find(s => s.category === 'PORE_CLARITY_PROTOCOL');
+        if (poreProtocol) {
+            protocolsHtml['pore'] = `
+                <h4>${poreProtocol.category}</h4>
+                <p><strong>${poreProtocol.issue}</strong></p>
+                <h5 style="color: #3fb950;">ACUTE_TREATMENT</h5>
+                <ul>${poreProtocol.acute_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
+                <h5 style="color: #388bfd;">INTENSIVE_TREATMENT</h5>
+                <ul>${poreProtocol.intensive_protocol.map(p => `<li>${p}</li>`).join('')}</ul>
+                <div class="timeline">⏱️ Timeline: ${poreProtocol.timeline_weeks} weeks</div>
+            `;
+        } else {
+            protocolsHtml['pore'] = `
+                <h4>Pore Clarity Protocol</h4>
+                <p style="color: var(--text-dim);">No specific pore protocol was generated. Maintain gentle exfoliation and oil control as part of your daily routine.</p>
             `;
         }
         
         // Medications protocol
         const medicationsStrategy = protocols.find(s => s.strategy === 'MEDICATION_PROTOCOLS');
+        const supplementsStrategy = protocols.find(s => s.strategy === 'MEDICATION_PROTOCOLS');
         if (medicationsStrategy) {
             protocolsHtml['medications'] = `
                 <h4>MEDICATION_PROTOCOLS</h4>
                 <p style="color: var(--text-dim); margin-bottom: 15px;">
-                    Prescription and over-the-counter medications tailored to your skin condition.
+                    Prescription and over-the-counter options tailored to your condition.
                 </p>
                 ${medicationsStrategy.topical_medications ? `
-                <h5 style="color: #d1184c;">TOPICAL_MEDICATIONS:</h5>
+                <h5 style="color: #d1184c;">TOPICAL_MEDICATIONS</h5>
                 ${medicationsStrategy.topical_medications.map(med => `
                     <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
                         <strong>${med.condition}:</strong>
@@ -796,7 +821,7 @@
                     </div>
                 `).join('')}` : '<p>No topical medications recommended.</p>'}
                 ${medicationsStrategy.oral_medications ? `
-                <h5 style="color: #d1184c; margin-top: 15px;">ORAL_MEDICATIONS:</h5>
+                <h5 style="color: #d1184c; margin-top: 15px;">ORAL_MEDICATIONS</h5>
                 ${medicationsStrategy.oral_medications.map(med => `
                     <div style="background: rgba(209, 24, 76, 0.1); border: 1px solid #d1184c; border-radius: 4px; padding: 10px; margin-bottom: 10px;">
                         <strong>${med.condition}:</strong>
@@ -810,7 +835,6 @@
         }
         
         // Supplements protocol
-        const supplementsStrategy = protocols.find(s => s.strategy === 'MEDICATION_PROTOCOLS');
         if (supplementsStrategy && supplementsStrategy.supplements) {
             protocolsHtml['supplements'] = `
                 <h4>SUPPLEMENT_PROTOCOLS</h4>
@@ -832,11 +856,11 @@
             protocolsHtml['professional'] = `
                 <h4>PROFESSIONAL_TREATMENT_FRAMEWORK</h4>
                 <p style="color: var(--text-dim); margin-bottom: 15px;">
-                    Recommended professional treatments and consultation schedule.
+                    Recommended professional treatments and follow-up schedule.
                 </p>
                 ${Object.keys(professionalStrategy).filter(key => key !== 'strategy').map(frequency => `
                     <div style="margin-bottom: 15px;">
-                        <h5 style="color: #3fb950; text-transform: uppercase;">${frequency}_VISITS:</h5>
+                        <h5 style="color: #3fb950; text-transform: uppercase;">${frequency}_VISITS</h5>
                         <ul style="margin: 0; padding-left: 20px;">
                             ${professionalStrategy[frequency].map(s => `<li>${s}</li>`).join('')}
                         </ul>
