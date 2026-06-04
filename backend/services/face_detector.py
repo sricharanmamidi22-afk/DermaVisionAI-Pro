@@ -10,8 +10,16 @@ except Exception:
 class FaceDetector:
     def __init__(self):
         try:
-            import mediapipe as mp
-            self.mp_face_detection = mp.solutions.face_detection
+            try:
+                # Try new mediapipe structure
+                from mediapipe.tasks import vision
+                from mediapipe import solutions
+                self.mp_face_detection = solutions.face_detection
+            except (ImportError, AttributeError):
+                # Try old mediapipe structure
+                import mediapipe as mp
+                self.mp_face_detection = mp.solutions.face_detection
+            
             self.detector = self.mp_face_detection.FaceDetection(
                 model_selection=1,
                 min_detection_confidence=0.5

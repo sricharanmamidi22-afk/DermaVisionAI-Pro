@@ -6,6 +6,8 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
 from backend.database.models import db, Analysis, Scan
+from backend.services.skin_analyzer import SkinAnalyzer
+from backend.services.face_detector import FaceDetector
 
 api_bp = Blueprint('api', __name__)
 
@@ -83,27 +85,19 @@ def analyze_skin():
             try:
                 results = current_app.skin_analyzer.analyze(filepath, face_img=face)
             except Exception as e:
-                print(f"[WARN] skin_analyzer.analyze failed: {e}")
-
-        # If analysis failed or returned an error, return a safe demo result so frontend can render
+                print(f"[ERROR] skin_analyzer.analyze failed: {e}")
+                error_msg = f"Skin analysis error: {str(e)}"
+                return jsonify({"status": "ERROR", "message": error_msg}), 500
+        
+        # If no analyzer available, return proper error
+        if not current_app.skin_analyzer:
+            return jsonify({"status": "ERROR", "message": "AI skin analyzer service not available. Please try again later."}), 503
+        
+        # If analysis returned an error, propagate it
         if not results or (isinstance(results, dict) and results.get('error')):
-            print(f"[WARN] Analysis failed or unavailable, returning demo telemetry. error={results.get('error') if isinstance(results, dict) else results}")
-            results = {
-                'health_score': 78,
-                'brightness': 72,
-                'hydration': 68,
-                'acne': 12,
-                'hyperpigmentation': 18,
-                'dark_circles': 10,
-                'wrinkles': 8,
-                'oiliness': 40,
-                'large_pores': 22,
-                'dryness': 24,
-                'fine_lines': 10,
-                'skin_type': 'Combination',
-                'diagnosis': 'Fallback demo results',
-                'status': 'SUCCESS'
-            }
+            error_details = results.get('error') if isinstance(results, dict) else "Unknown analysis error"
+            print(f"[ERROR] Analysis returned error: {error_details}")
+            return jsonify({"status": "ERROR", "message": f"Skin analysis failed: {error_details}"}), 500
         
         # Enforce unified score schemas across system components
         results["health_index"] = results.get("health_score", 0)

@@ -161,7 +161,7 @@ class DermaScanner {
         
         const statusEl = document.getElementById('ai-status');
         statusEl.innerText = "● SYSTEM_ANALYZING";
-        statusEl.classList.add('pulse-text'); // Add a CSS pulse class
+        statusEl.classList.add('pulse-text');
 
         const captureCanvas = document.createElement('canvas');
         captureCanvas.width = this.video.videoWidth;
@@ -179,12 +179,22 @@ class DermaScanner {
             if (result.status === "SUCCESS") {
                 this.updateUI(result.telemetry);
                 this._playCompletionAnim();
+                // Navigate to report page after a brief delay to show animation
+                setTimeout(() => {
+                    window.location.href = `/report/${result.scan_id}`;
+                }, 800);
+            } else if (result.status === "ERROR") {
+                this.handleError("ANALYSIS_FAILED", new Error(result.message || "Unknown error"));
+            } else {
+                this.handleError("INVALID_RESPONSE", new Error("Unexpected response format"));
             }
         } catch (error) {
             this.handleError("CORE_TIMEOUT", error);
         } finally {
             this.isScanning = false;
-            statusEl.innerText = "● CORE_READY";
+            if (statusEl.style.color !== "#ff3b3b") {
+                statusEl.innerText = "● CORE_READY";
+            }
             statusEl.classList.remove('pulse-text');
         }
     }
