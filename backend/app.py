@@ -165,34 +165,7 @@ def create_app():
         logout_user()
         return redirect(url_for('login'))
 
-    # --- 📊 REPORT API (Fixes the Report Error) ---
-    @app.route('/api/improvement-suggestions/<scan_id>')
-    def get_report_data(scan_id):
-        # This prevents the report page from showing a blank screen/error
-        return jsonify({
-            "status": "SUCCESS",
-            "suggestions": {
-                "current_score": 85,
-                "target_score": 100,
-                "improvement_potential": 15,
-                "timeline_to_perfect": "4 Weeks",
-                "suggestions": [
-                    {
-                        "category": "HYDRATION",
-                        "issue": "Slight periorbital dryness",
-                        "current_status": "72%", "target": "90%",
-                        "improvement_points": 10, "severity": "MEDIUM",
-                        "acute_protocol": ["Hyaluronic Acid"],
-                        "intensive_protocol": ["Weekly mask"],
-                        "product_recommendations": ["Cerave Hydrating Serum"],
-                        "timeline_weeks": 2
-                    }
-                ],
-                "prevention_strategies": []
-            }
-        })
-
-    # --- 🚀 BLUEPRINT REGISTRATION ---
+    # ---  BLUEPRINT REGISTRATION ---
     # CRITICAL: Check if already registered to prevent ValueError
     if 'api' not in app.blueprints:
         app.register_blueprint(api_bp, url_prefix="/api")
