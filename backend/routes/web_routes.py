@@ -48,7 +48,8 @@ def report(analysis_id):
             'image_path': 'demo_face.png' 
         }
         image_url = f'/static/uploads/{mock_data["image_path"]}'
-        return render_template('report.html', analysis=mock_data, image_url=image_url, scan_id=analysis_id)
+        analysis_data = json.loads(mock_data['result_json'])
+        return render_template('report.html', analysis=mock_data, analysis_data=analysis_data, image_url=image_url, scan_id=analysis_id)
     
     # Try to find by scan_id first (from ledger)
     scan = Scan.query.filter_by(scan_id=analysis_id, user_id=current_user.id).first()
@@ -68,7 +69,7 @@ def report(analysis_id):
         })()
         
         image_url = f'/uploads/{scan.image_path}' if scan.image_path else '/static/uploads/default.png'
-        return render_template('report.html', analysis=analysis, image_url=image_url, scan_id=scan.id)
+        return render_template('report.html', analysis=analysis, analysis_data=results, image_url=image_url, scan_id=scan.scan_id)
     
     # Try to find by Analysis id (integer)
     try:
@@ -80,8 +81,9 @@ def report(analysis_id):
         # Construct image URL from image_path
         image_url = f'/uploads/{analysis.image_path}' if analysis.image_path else '/static/uploads/default.png'
         scan_id = analysis.id
+        analysis_data = json.loads(analysis.result_json) if analysis.result_json else {}
         
-        return render_template('report.html', analysis=analysis, image_url=image_url, scan_id=scan_id)
+        return render_template('report.html', analysis=analysis, analysis_data=analysis_data, image_url=image_url, scan_id=scan_id)
     except (ValueError, TypeError):
         # If not an integer and not found in Scan table, return 404
         abort(404)

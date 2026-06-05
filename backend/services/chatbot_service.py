@@ -76,7 +76,7 @@ NEURAL_VERDICT - Your final clinical assessment"""
             print(f"[ERROR] CHATBOT_SERVICE: Response generation failed: {e}")
             return self._get_fallback_response(user_message)
 
-    def generate_improvement_suggestions(self, skin_concerns, scan_data=None):
+    def generate_improvement_suggestions(self, skin_concerns, scan_data=None, current_health_score=None):
         """
         Generate comprehensive improvement suggestions based on identified skin concerns.
         Returns structured recommendations for daily routines, medications, and professional treatments.
@@ -121,15 +121,19 @@ Create a comprehensive improvement plan including:
    - 12-week goals
    - 6-month transformations
 
-Format each section clearly with specific, actionable steps."""
+Return the result as a JSON object with keys: current_score, target_score, improvement_potential, timeline_to_perfect, suggestions, prevention_strategies."""
                 
                 response = self.model.generate_content(prompt)
-                return response.text if response else self._get_fallback_suggestions(skin_concerns)
+                if response and getattr(response, 'text', None):
+                    parsed = self._parse_suggestions_response(response.text)
+                    if parsed:
+                        return parsed
+                return self._get_structured_fallback_suggestions(skin_concerns, current_health_score=current_health_score)
             else:
-                return self._get_fallback_suggestions(skin_concerns)
+                return self._get_structured_fallback_suggestions(skin_concerns, current_health_score=current_health_score)
         except Exception as e:
             print(f"[ERROR] CHATBOT_SERVICE: Suggestion generation failed: {e}")
-            return self._get_fallback_suggestions(skin_concerns)
+            return self._get_structured_fallback_suggestions(skin_concerns, current_health_score=current_health_score)
 
     def _format_scan_context(self, scan_data):
         """Format scan data into readable context for the AI."""
@@ -161,6 +165,99 @@ Format each section clearly with specific, actionable steps."""
                     context_lines.append(f"- {label}: {value}")
         
         return "\n".join(context_lines)
+
+    def _parse_suggestions_response(self, text):
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            return None
+        return None
+
+    def _get_structured_fallback_suggestions(self, skin_concerns, current_health_score=None):
+        current_score = current_health_score if isinstance(current_health_score, (int, float)) else 75
+        return {
+            "current_score": int(current_score),
+            "target_score": 100,
+            "improvement_potential": max(0, 100 - int(current_score)),
+            "timeline_to_perfect": "4-8 weeks",
+            "suggestions": [
+                {
+                    "category": "HYDRATION_OPTIMIZATION",
+                    "severity": "MODERATE",
+                    "current_status": "Dry surface with compromised barrier",
+                    "target": "95% hydration and intact barrier",
+                    "issue": "Transepidermal water loss detected; restore lipid and moisture balance.",
+                    "improvement_points": 18,
+                    "timeline_weeks": 4,
+                    "acute_protocol": [
+                        "Use a gentle, non-foaming cleanser morning and evening.",
+                        "Follow with a hyaluronic acid serum and barrier-supporting moisturizer.",
+                        "Add a lightweight occlusive balm at night to reduce moisture evaporation."
+                    ],
+                    "intensive_protocol": [
+                        "Introduce a ceramide-rich repair cream daily.",
+                        "Use a calming, fragrance-free hydrator after cleansing.",
+                        "Incorporate a weekly restorative mask focused on barrier recovery."
+                    ],
+                    "product_recommendations": [
+                        "Niacinamide + Ceramide Moisturizer",
+                        "Hyaluronic Acid Serum",
+                        "Zinc Oxide SPF 50 Broad Spectrum"
+                    ]
+                },
+                {
+                    "category": "PORE_CLARITY_PROTOCOL",
+                    "severity": "LOW",
+                    "current_status": "Mild congestion present in T-zone.",
+                    "target": "Clearer pore surface with refined texture.",
+                    "issue": "Early congestive changes and uneven surface texture.",
+                    "improvement_points": 12,
+                    "timeline_weeks": 6,
+                    "acute_protocol": [
+                        "Use gentle chemical exfoliation 2x weekly.",
+                        "Apply a clay-based mask to absorb excess sebum.",
+                        "Avoid heavy occlusive creams in oily zones."
+                    ],
+                    "intensive_protocol": [
+                        "Use a salicylic acid-based serum nightly.",
+                        "Incorporate a retinoid derivative 3x weekly.",
+                        "Schedule a professional pore-refining treatment if needed."
+                    ],
+                    "product_recommendations": [
+                        "Salicylic Acid BHA Cleanser",
+                        "Lightweight Niacinamide Serum",
+                        "Non-comedogenic Moisturizer"
+                    ]
+                }
+            ],
+            "prevention_strategies": [
+                {
+                    "strategy": "DAILY_SKINCARE_PROTOCOL",
+                    "morning": [
+                        "Cleanse with a gentle, pH-balanced wash.",
+                        "Apply antioxidant serum for daytime protection.",
+                        "Moisturize with barrier-repair ingredients.",
+                        "Finish with SPF 50 or higher.",
+                        "Use a lightweight eye gel for periorbital hydration."
+                    ],
+                    "evening": [
+                        "Remove makeup and impurities with a mild cleanser.",
+                        "Apply a targeted treatment serum for hydration or acne control.",
+                        "Use a peptide-rich repair cream.",
+                        "Include an emollient moisturizer to seal in hydration.",
+                        "Finish with a restorative nighttime balm.",
+                        "Apply a gentle eye repair product."
+                    ],
+                    "weekly": [
+                        "Perform a gentle resurfacing treatment once weekly.",
+                        "Use a hydrating sheet mask mid-week.",
+                        "Apply a calming recovery mask on the weekend."
+                    ]
+                }
+            ]
+        }
 
     def _get_fallback_response(self, user_message):
         """Fallback response using local knowledge base."""
