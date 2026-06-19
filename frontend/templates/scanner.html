@@ -99,7 +99,7 @@
                 <button id="import-btn" class="cyber-btn" data-label="LOCAL_INGEST">
                     <span>LOCAL_INGEST</span>
                 </button>
-                <button id="capture-btn" class="cyber-btn primary" data-label="INITIATE_SCAN">
+                <button id="capture-btn" class="cyber-btn primary" data-label="INITIATE_SCAN" disabled>
                     <span>INITIATE_SCAN</span>
                 </button>
             </div>
@@ -535,6 +535,10 @@
                 
                 // Start HUD rendering
                 requestAnimationFrame(drawProceduralMesh);
+
+                // Enable capture button now that camera and models are initialized
+                const capBtn = document.getElementById('capture-btn');
+                if (capBtn) capBtn.disabled = false;
             };
         } catch (err) {
             updateLog("HARDWARE_FAILURE: CAMERA_NOT_FOUND");
@@ -645,6 +649,19 @@
         }
     }
 
+    // Wait for a usable video frame (dimensions & enough data) before capturing
+    async function ensureVideoFrame(timeout = 3000) {
+        const start = Date.now();
+        return new Promise((resolve) => {
+            const check = () => {
+                if (video && video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) return resolve(true);
+                if (Date.now() - start > timeout) return resolve(false);
+                requestAnimationFrame(check);
+            };
+            check();
+        });
+    }
+
     // 4. ADVANCED PROCEDURAL TRACKING MESH
     function drawProceduralMesh() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -697,10 +714,22 @@
 
     // 5. CAPTURE & ANALYSIS (ONLY WHEN FACE DETECTED)
     document.getElementById('capture-btn').addEventListener('click', async () => {
-        if (!isFaceDetected) {
+        // Ensure the video has produced a frame before we capture (handles cold-start)
+        const ready = await ensureVideoFrame(3500);
+        if (!ready) {
+            updateLog('ERROR: VIDEO_NOT_READY - TRY_AGAIN');
+            showDetectionFeedback('failed');
+            return;
+        }
+
+        if (!isFaceDetected && faceApiLoaded) {
             showDetectionFeedback('failed');
             updateLog("ERROR: NO_FACE_DETECTED - POSITION_CORRECTLY");
             return;
+        }
+
+        if (!isFaceDetected && !faceApiLoaded) {
+            updateLog("NO_FACE_DETECTION_AVAILABLE: PROCEEDING_WITH_CAPTURE");
         }
 
         // Visual Feedback
@@ -710,8 +739,8 @@
         updateLog("CAPTURING_HIGH_RES_SUBSTRATE...");
 
         const snap = document.createElement('canvas');
-        snap.width = video.videoWidth;
-        snap.height = video.videoHeight;
+        snap.width = video.videoWidth || 1280;
+        snap.height = video.videoHeight || 720;
         snap.getContext('2d').drawImage(video, 0, 0);
 
         try {
